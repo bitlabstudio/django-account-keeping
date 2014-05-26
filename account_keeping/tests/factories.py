@@ -11,7 +11,6 @@ class CurrencyFactory(factory.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: 'name{0}'.format(n))
     iso_code = factory.Sequence(lambda n: 'iso{0}'.format(n))
-    usd_rate = 1
 
 
 class AccountFactory(factory.DjangoModelFactory):
