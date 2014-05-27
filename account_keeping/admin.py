@@ -5,8 +5,13 @@ from . import models
 
 
 class CurrencyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'iso_code']
+    list_display = ['name', 'iso_code', 'is_base_currency']
 admin.site.register(models.Currency, CurrencyAdmin)
+
+
+class CurrencyRateAdmin(admin.ModelAdmin):
+    list_display = ['currency', 'year', 'month', 'rate']
+admin.site.register(models.CurrencyRate, CurrencyRateAdmin)
 
 
 class AccountAdmin(admin.ModelAdmin):

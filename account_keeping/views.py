@@ -21,7 +21,22 @@ class MonthView(TemplateView):
         ctx = super(MonthView, self).get_context_data(**kwargs)
         accounts = models.Account.objects.all()
         account_transactions = []
+        month_totals = {
+            'amount_net': 0,
+            'amount_gross': 0,
+            'expenses_net': 0,
+            'expenses_gross': 0,
+            'income_net': 0,
+            'income_gross': 0,
+        }
+        base_currency = models.Currency.objects.get(is_base_currency=True)
         for account in accounts:
+            rate = 1
+            if not account.currency.is_base_currency:
+                rate = models.CurrencyRate.objects.get(
+                    year=self.month.year, month=self.month.month,
+                    currency=account.currency,
+                ).rate
             qs = models.Transaction.objects.filter(
                 account=account,
                 parent__isnull=True,
@@ -29,17 +44,31 @@ class MonthView(TemplateView):
                 transaction_date__month=self.month.month,
             )
             amount_net_sum = qs.aggregate(
-                Sum('value_net'))['value_net__sum']
+                Sum('value_net'))['value_net__sum'] or 0
             amount_gross_sum = qs.aggregate(
-                Sum('value_gross'))['value_gross__sum']
+                Sum('value_gross'))['value_gross__sum'] or 0
             expenses_net_sum = qs.filter(transaction_type="D").aggregate(
-                Sum('amount_net'))['amount_net__sum']
+                Sum('amount_net'))['amount_net__sum'] or 0
             expenses_gross_sum = qs.filter(transaction_type="D").aggregate(
-                Sum('amount_gross'))['amount_gross__sum']
+                Sum('amount_gross'))['amount_gross__sum'] or 0
             income_net_sum = qs.filter(transaction_type="C").aggregate(
-                Sum('amount_net'))['amount_net__sum']
+                Sum('amount_net'))['amount_net__sum'] or 0
             income_gross_sum = qs.filter(transaction_type="C").aggregate(
-                Sum('amount_gross'))['amount_gross__sum']
+                Sum('amount_gross'))['amount_gross__sum'] or 0
+
+            amount_net_sum_base = amount_net_sum * rate
+            amount_gross_sum_base = amount_gross_sum * rate
+            expenses_net_sum_base = expenses_net_sum * rate
+            expenses_gross_sum_base = expenses_gross_sum * rate
+            income_net_sum_base = income_net_sum * rate
+            income_gross_sum_base = income_gross_sum * rate
+
+            month_totals['amount_net'] += amount_net_sum_base
+            month_totals['amount_gross'] += amount_gross_sum_base
+            month_totals['expenses_net'] += expenses_net_sum_base
+            month_totals['expenses_gross'] += expenses_gross_sum_base
+            month_totals['income_net'] += income_net_sum_base
+            month_totals['income_gross'] += income_gross_sum_base
 
             account_transactions.append({
                 'account': account,
@@ -50,9 +79,17 @@ class MonthView(TemplateView):
                 'expenses_gross_total': expenses_gross_sum,
                 'income_net_total': income_net_sum,
                 'income_gross_total': income_gross_sum,
+                'amount_net_sum_base': amount_net_sum_base,
+                'amount_gross_sum_base': amount_gross_sum_base,
+                'expenses_net_sum_base': expenses_net_sum_base,
+                'expenses_gross_sum_base': expenses_gross_sum_base,
+                'income_net_sum_base': income_net_sum_base,
+                'income_gross_sum_base': income_gross_sum_base,
             })
         ctx.update({
+            'base_currency': base_currency,
             'month': self.month,
+            'month_totals': month_totals,
             'account_transactions': account_transactions,
         })
         return ctx

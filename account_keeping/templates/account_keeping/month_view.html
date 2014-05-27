@@ -72,5 +72,43 @@
     {% empty %}
         <p>{% trans "You must create accounts first." %}</p>
     {% endfor %}
+
+    <h2>{% trans "Total" %} ({{ base_currency.iso_code }})</h2>
+
+    <table class="table table-hover table-condensed small">
+        <thead>
+            <tr>
+                <th>{% trans "Account" %}</th>
+                <th>{% trans "Expenses (net)" %}</th>
+                <th>{% trans "Expenses (gross)" %}</th>
+                <th>{% trans "Income (net)" %}</th>
+                <th>{% trans "Income (gross)" %}</th>
+                <th>{% trans "Balance (net)" %}</th>
+                <th>{% trans "Balance (gross)" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for value_dict in account_transactions %}
+                <tr>
+                    <td>{{ value_dict.account.name }}</td>
+                    <td>{{ value_dict.expenses_net_sum_base }}</td>
+                    <td>{{ value_dict.expenses_gross_sum_base }}</td>
+                    <td>{{ value_dict.income_net_sum_base }}</td>
+                    <td>{{ value_dict.income_gross_sum_base }}</td>
+                    <td>{{ value_dict.amount_net_sum_base }}</td>
+                    <td>{{ value_dict.amount_gross_sum_base }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>{% trans "Total" %}</strong></td>
+                <td><strong>{{ month_totals.expenses_net }}</strong></td>
+                <td><strong>{{ month_totals.expenses_gross }}</strong></td>
+                <td><strong>{{ month_totals.income_net }}</strong></td>
+                <td><strong>{{ month_totals.income_gross }}</strong></td>
+                <td><strong>{{ month_totals.amount_net }}</strong></td>
+                <td><strong>{{ month_totals.amount_gross }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 {% endblock %}

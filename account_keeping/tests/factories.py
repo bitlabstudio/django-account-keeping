@@ -1,4 +1,6 @@
 """Factories for the account_keeping app."""
+from decimal import Decimal
+
 from django.utils.timezone import now
 
 import factory
@@ -11,6 +13,15 @@ class CurrencyFactory(factory.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: 'name{0}'.format(n))
     iso_code = factory.Sequence(lambda n: 'iso{0}'.format(n))
+
+
+class CurrencyRateFactory(factory.DjangoModelFactory):
+    FACTORY_FOR = models.CurrencyRate
+
+    currency = factory.SubFactory(CurrencyFactory)
+    year = factory.LazyAttribute(lambda n: now().year)
+    month = factory.LazyAttribute(lambda n: now().month)
+    rate = Decimal(1.12345)
 
 
 class AccountFactory(factory.DjangoModelFactory):
