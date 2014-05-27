@@ -37,6 +37,7 @@ admin.site.register(models.Category, CategoryAdmin)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = [
         'transaction_date', 'invoice_number', 'invoice', 'payee', 'category',
-        'currency', 'amount_net', 'vat', 'amount_gross', ]
+        'currency', 'value_net', 'vat', 'value_gross', ]
+    list_filter = ['account', ]
     date_hierarchy = 'transaction_date'
 admin.site.register(models.Transaction, TransactionAdmin)

@@ -1,11 +1,12 @@
-django-nose
 coverage
 django-coverage
 django-jasmine
-ipdb
-flake8
+django-libs
+django-nose
 fabric
 factory_boy
+flake8
+ipdb
 mock
 selenium
 south

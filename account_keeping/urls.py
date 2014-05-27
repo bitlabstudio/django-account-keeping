@@ -1,12 +1,12 @@
 """URLs for the account_keeping app."""
-# from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url
 
-# from . import views
+from . import views
 
 
-# urlpatterns = patterns(
-#     '',
-#     url(r'^$',
-#         views.YourView.as_view(),
-#         name='account_keeping_default'),
-# )
+urlpatterns = patterns(
+    '',
+    url(r'(?P<year>\d+)/(?P<month>\d+)/$',
+        views.MonthView.as_view(),
+        name='account_keeping_month'),
+)

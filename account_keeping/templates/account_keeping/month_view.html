@@ -1,0 +1,76 @@
+{% extends "account_keeping/base.html" %}
+{% load humanize i18n libs_tags %}
+
+{% block main %}
+<div class="container">
+    <h1>{{ month|date:"F Y" }}</h1>
+    {% for value_dict in account_transactions %}
+        <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
+        <table class="table table-hover table-condensed small">
+            <thead>
+                <tr>
+                    <th>{% trans "ID" %}</th>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Invoice" %}</th>
+                    <th>{% trans "Payee" %}</th>
+                    <th>{% trans "Category" %}</th>
+                    <th>{% trans "Amount (net)" %}</th>
+                    <th>{% trans "VAT" %}</th>
+                    <th>{% trans "Amount (gross)" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in value_dict.transactions %}
+                    <tr class="{% if transaction.transaction_type == "D" %}danger{% else %}success{% endif %}">
+                        <td>{{ transaction.pk }}</td>
+                        <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
+                        <td>{{ transaction.transaction_type }}</td>
+                        <td>{{ transaction.description|default:"n/a" }}</td>
+                        <td>
+                            {% if transaction.invoice %}
+                                {{ transaction.invoice.invoice_number }}
+                            {% elif transaction.invoice_number %}
+                                {{ transaction.invoice_number }}
+                            {% else %}
+                                {% trans "n/a" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ transaction.payee }}</td>
+                        <td>{{ transaction.category }}</td>
+                        <td>{{ transaction.amount_net|intcomma }}</td>
+                        <td>{{ transaction.vat }}</td>
+                        <td>{{ transaction.amount_gross|intcomma }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">{% trans "No transactions found for this month." %}</td></tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="7"><strong>{% trans "Expenses total" %}</strong></td>
+                    <td><strong>{{ value_dict.expenses_net_total }}</strong></td>
+                    <td></td>
+                    <td><strong>{{ value_dict.expenses_gross_total }}</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="7"><strong>{% trans "Income total" %}</strong></td>
+                    <td><strong>{{ value_dict.income_net_total }}</strong></td>
+                    <td></td>
+                    <td><strong>{{ value_dict.income_gross_total }}</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="7"><strong>{% trans "Balance total" %}</strong></td>
+                    <td><strong>{{ value_dict.amount_net_total }}</strong></td>
+                    <td></td>
+                    <td><strong>{{ value_dict.amount_gross_total }}</strong></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    {% empty %}
+        <p>{% trans "You must create accounts first." %}</p>
+    {% endfor %}
+</div>
+{% endblock %}

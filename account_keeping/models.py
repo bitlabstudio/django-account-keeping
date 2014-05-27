@@ -86,17 +86,36 @@ class Transaction(models.Model):
     category = models.ForeignKey(Category, related_name='transactions')
     currency = models.ForeignKey(Currency, related_name='transactions')
     amount_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10, decimal_places=2, default=0, blank=True)
     vat = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     amount_gross = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, blank=True)
+    value_net = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    value_gross = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
 
     class Meta:
-        ordering = ['-transaction_date', ]
+        ordering = ['transaction_date', ]
 
     def __unicode__(self):
         if self.invoice_number:
-            return self.invoice_numer
+            return self.invoice_number
         if self.invoice and self.invoice.invoice_number:
             return self.invoice.invoice_number
         return '{0} - {1}'.format(self.payee, self.category)
+
+    def save(self, *args, **kwargs):
+        if self.amount_net and not self.amount_gross:
+            self.amount_gross = self.amount_net * (self.vat / 100.0 + 1)
+
+        if self.amount_gross and not self.amount_net:
+            self.amount_net = 1.0 / (self.vat / 100.0 + 1) * self.amount_gross
+
+        multiplier = 1
+        if self.transaction_type == 'D':
+            multiplier = -1
+        self.value_net = self.amount_net * multiplier
+        self.value_gross = self.amount_gross * multiplier
+
+        return super(Transaction, self).save(*args, **kwargs)

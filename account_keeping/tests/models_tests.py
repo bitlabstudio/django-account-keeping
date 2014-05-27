@@ -44,3 +44,22 @@ class TransactionTestCase(TestCase):
     def test_model(self):
         obj = factories.TransactionFactory()
         self.assertTrue(obj.pk)
+
+    def test_save(self):
+        obj = factories.TransactionFactory(
+            amount_net=100, vat=19, amount_gross=None)
+        self.assertEqual(obj.amount_gross, 119, msg=(
+            'If only amount_net is given, amount_gross should be calculated'))
+
+        obj = factories.TransactionFactory(
+            amount_net=None, vat=19, amount_gross=119)
+        self.assertEqual(obj.amount_net, 100, msg=(
+            'If only amount_gross is given, amount_net should be calculated'))
+
+        obj = factories.TransactionFactory(transaction_type='C')
+        self.assertEqual(obj.value_net, obj.amount_net, msg=(
+            'When type is credit, the value should be positive'))
+
+        obj = factories.TransactionFactory(transaction_type='D')
+        self.assertEqual(obj.value_net, obj.amount_net * -1, msg=(
+            'When type is debit, the value should be negative'))

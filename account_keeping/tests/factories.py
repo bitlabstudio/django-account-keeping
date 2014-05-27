@@ -47,7 +47,9 @@ class CategoryFactory(factory.DjangoModelFactory):
 class TransactionFactory(factory.DjangoModelFactory):
     FACTORY_FOR = models.Transaction
 
-    date = factory.LazyAttribute(lambda x: now())
+    account = factory.SubFactory(AccountFactory)
+    transaction_date = factory.LazyAttribute(lambda x: now())
+    transaction_type = 'C'
     payee = factory.SubFactory(PayeeFactory)
     category = factory.SubFactory(CategoryFactory)
     currency = factory.SubFactory(CurrencyFactory)

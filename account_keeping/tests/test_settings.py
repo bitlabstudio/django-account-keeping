@@ -49,8 +49,10 @@ EXTERNAL_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
     'django.contrib.sites',
+    'django.contrib.humanize',
     'django_jasmine',
     'django_nose',
+    'django_libs',
 ]
 
 INTERNAL_APPS = [
