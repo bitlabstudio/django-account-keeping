@@ -24,6 +24,7 @@ class MonthView(TemplateView):
         for account in accounts:
             qs = models.Transaction.objects.filter(
                 account=account,
+                parent__isnull=True,
                 transaction_date__year=self.month.year,
                 transaction_date__month=self.month.month,
             )

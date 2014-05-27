@@ -1,4 +1,6 @@
 """Models for the account_keeping app."""
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -75,6 +77,11 @@ class Transaction(models.Model):
     ]
 
     account = models.ForeignKey(Account, related_name='transactions')
+    parent = models.ForeignKey(
+        'account_keeping.Transaction',
+        related_name='children',
+        blank=True, null=True,
+    )
     transaction_type = models.CharField(
         max_length=1, choices=TRANSACTION_TYPE_CHOICES)
     transaction_date = models.DateField()
@@ -107,10 +114,19 @@ class Transaction(models.Model):
 
     def save(self, *args, **kwargs):
         if self.amount_net and not self.amount_gross:
-            self.amount_gross = self.amount_net * (self.vat / 100.0 + 1)
+            if self.vat:
+                self.amount_gross = \
+                    self.amount_net * (self.vat / Decimal(100.0) + 1)
+            else:
+                self.amount_gross = self.amount_net
 
         if self.amount_gross and not self.amount_net:
-            self.amount_net = 1.0 / (self.vat / 100.0 + 1) * self.amount_gross
+            if self.vat:
+                self.amount_net = \
+                    Decimal(1.0) / (self.vat / Decimal(100.0) + 1) \
+                    * self.amount_gross
+            else:
+                self.amount_net = self.amount_gross
 
         multiplier = 1
         if self.transaction_type == 'D':
