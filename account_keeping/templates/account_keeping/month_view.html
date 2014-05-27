@@ -19,9 +19,11 @@
                     <th>{% trans "Amount (net)" %}</th>
                     <th>{% trans "VAT" %}</th>
                     <th>{% trans "Amount (gross)" %}</th>
+                    <th>{% trans "Balance (gross)" %}</th>
                 </tr>
             </thead>
             <tbody>
+                {% save "BALANCE" value_dict.account_balance %}
                 {% for transaction in value_dict.transactions %}
                     <tr class="{% if transaction.transaction_type == "D" %}danger{% else %}success{% endif %}">
                         <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
@@ -42,6 +44,8 @@
                         <td>{{ transaction.amount_net|intcomma }}</td>
                         <td>{{ transaction.vat }}</td>
                         <td>{{ transaction.amount_gross|intcomma }}</td>
+                        <td>{{ BALANCE }}</td>
+                        {% sum "BALANCE" transaction.value_gross %}
                     </tr>
                 {% empty %}
                     <tr><td colspan="5">{% trans "No transactions found for this month." %}</td></tr>

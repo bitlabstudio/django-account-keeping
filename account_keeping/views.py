@@ -37,6 +37,14 @@ class MonthView(TemplateView):
                     year=self.month.year, month=self.month.month,
                     currency=account.currency,
                 ).rate
+
+            account_balance = models.Transaction.objects.filter(
+                account=account,
+                parent__isnull=True,
+                transaction_date__lt=self.month,
+            ).aggregate(Sum('value_gross'))['value_gross__sum'] or 0
+            account_balance = account_balance + account.initial_amount
+
             qs = models.Transaction.objects.filter(
                 account=account,
                 parent__isnull=True,
@@ -72,6 +80,7 @@ class MonthView(TemplateView):
 
             account_transactions.append({
                 'account': account,
+                'account_balance': account_balance,
                 'transactions': qs,
                 'amount_net_total': amount_net_sum,
                 'amount_gross_total': amount_gross_sum,
