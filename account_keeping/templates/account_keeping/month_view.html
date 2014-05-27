@@ -24,13 +24,13 @@
             <tbody>
                 {% for transaction in value_dict.transactions %}
                     <tr class="{% if transaction.transaction_type == "D" %}danger{% else %}success{% endif %}">
-                        <td>{{ transaction.pk }}</td>
+                        <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
                         <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
                         <td>{{ transaction.transaction_type }}</td>
                         <td>{{ transaction.description|default:"n/a" }}</td>
                         <td>
                             {% if transaction.invoice %}
-                                {{ transaction.invoice.invoice_number }}
+                                <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number }}</a>
                             {% elif transaction.invoice_number %}
                                 {{ transaction.invoice_number }}
                             {% else %}
