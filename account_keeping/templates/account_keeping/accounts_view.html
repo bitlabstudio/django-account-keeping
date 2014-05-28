@@ -4,117 +4,129 @@
 {% block main %}
 <div class="container">
     <h1>{{ view_name }}</h1>
-    {% for value_dict in account_transactions %}
-        <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
-        <table class="table table-hover table-condensed small">
-            <thead>
-                <tr>
-                    <th>{% trans "ID" %}</th>
-                    <th>{% trans "Date" %}</th>
-                    <th>{% trans "Description" %}</th>
-                    <th>{% trans "Invoice" %}</th>
-                    <th>{% trans "Payee" %}</th>
-                    <th>{% trans "Category" %}</th>
-                    <th>{% trans "Amount (net)" %}</th>
-                    <th>{% trans "VAT" %}</th>
-                    <th>{% trans "Amount (gross)" %}</th>
-                    <th>{% trans "Balance (gross)" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% save "BALANCE" value_dict.account_balance %}
-                {% for transaction in value_dict.transactions %}
-                    {% sum "BALANCE" transaction.value_gross %}
-                    <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
-                        <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
-                        <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
-                        <td>{{ transaction.description|default:"n/a" }}</td>
-                        <td>
-                            {% if transaction.invoice %}
-                                <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number|default:transaction.invoice.pk }}</a>
-                            {% elif transaction.invoice_number %}
-                                {{ transaction.invoice_number }}
-                            {% else %}
-                                {% trans "n/a" %}
-                            {% endif %}
-                        </td>
-                        <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
-                        <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
-                        <td>{{ transaction.amount_net|intcomma }}</td>
-                        <td>{{ transaction.vat }}</td>
-                        <td>{{ transaction.amount_gross|intcomma }}</td>
-                        <td>{{ BALANCE|intcomma }}</td>
+
+    <ul class="nav nav-tabs">
+        {% for value_dict in account_transactions %}
+            <li {% if forloop.counter == 1 %}class="active"{% endif %}><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }}</a></li>
+        {% endfor %}
+        <li><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
+    </ul>
+
+    <div class="tab-content">
+        {% for value_dict in account_transactions %}
+        <div class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="{{ value_dict.account.slug }}">
+                <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
+                <table class="table table-hover table-condensed small">
+                    <thead>
+                        <tr>
+                            <th>{% trans "ID" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Invoice" %}</th>
+                            <th>{% trans "Payee" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Amount (net)" %}</th>
+                            <th>{% trans "VAT" %}</th>
+                            <th>{% trans "Amount (gross)" %}</th>
+                            <th>{% trans "Balance (gross)" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% save "BALANCE" value_dict.account_balance %}
+                        {% for transaction in value_dict.transactions %}
+                            {% sum "BALANCE" transaction.value_gross %}
+                            <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
+                                <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
+                                <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
+                                <td>{{ transaction.description|default:"n/a" }}</td>
+                                <td>
+                                    {% if transaction.invoice %}
+                                        <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number|default:transaction.invoice.pk }}</a>
+                                    {% elif transaction.invoice_number %}
+                                        {{ transaction.invoice_number }}
+                                    {% else %}
+                                        {% trans "n/a" %}
+                                    {% endif %}
+                                </td>
+                                <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
+                                <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
+                                <td>{{ transaction.amount_net|intcomma }}</td>
+                                <td>{{ transaction.vat }}</td>
+                                <td>{{ transaction.amount_gross|intcomma }}</td>
+                                <td>{{ BALANCE|intcomma }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="10">{% trans "No transactions found for this month." %}</td></tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="9"><strong>{% trans "Current balance" %}</strong></td>
+                            <td>{{ BALANCE }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><strong>{% trans "Expenses total" %}</strong></td>
+                            <td><strong>{{ value_dict.expenses_net_total }}</strong></td>
+                            <td></td>
+                            <td><strong>{{ value_dict.expenses_gross_total }}</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><strong>{% trans "Income total" %}</strong></td>
+                            <td><strong>{{ value_dict.income_net_total }}</strong></td>
+                            <td></td>
+                            <td><strong>{{ value_dict.income_gross_total }}</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><strong>{% trans "Balance total" %}</strong></td>
+                            <td><strong>{{ value_dict.amount_net_total }}</strong></td>
+                            <td></td>
+                            <td><strong>{{ value_dict.amount_gross_total }}</strong></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+
+        <div class="tab-pane" id="totals">
+            <h2>{% trans "Total" %} ({{ base_currency.iso_code }})</h2>
+
+            <table class="table table-hover table-condensed small">
+                <thead>
+                    <tr>
+                        <th>{% trans "Account" %}</th>
+                        <th>{% trans "Expenses (net)" %}</th>
+                        <th>{% trans "Expenses (gross)" %}</th>
+                        <th>{% trans "Income (net)" %}</th>
+                        <th>{% trans "Income (gross)" %}</th>
+                        <th>{% trans "Balance (net)" %}</th>
+                        <th>{% trans "Balance (gross)" %}</th>
                     </tr>
-                {% empty %}
-                    <tr><td colspan="10">{% trans "No transactions found for this month." %}</td></tr>
-                {% endfor %}
-                <tr>
-                    <td colspan="9"><strong>{% trans "Current balance" %}</strong></td>
-                    <td>{{ BALANCE }}</td>
-                </tr>
-                <tr>
-                    <td colspan="6"><strong>{% trans "Expenses total" %}</strong></td>
-                    <td><strong>{{ value_dict.expenses_net_total }}</strong></td>
-                    <td></td>
-                    <td><strong>{{ value_dict.expenses_gross_total }}</strong></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colspan="6"><strong>{% trans "Income total" %}</strong></td>
-                    <td><strong>{{ value_dict.income_net_total }}</strong></td>
-                    <td></td>
-                    <td><strong>{{ value_dict.income_gross_total }}</strong></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colspan="6"><strong>{% trans "Balance total" %}</strong></td>
-                    <td><strong>{{ value_dict.amount_net_total }}</strong></td>
-                    <td></td>
-                    <td><strong>{{ value_dict.amount_gross_total }}</strong></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-    {% empty %}
-        <p>{% trans "You must create accounts first." %}</p>
-    {% endfor %}
-
-    <h2>{% trans "Total" %} ({{ base_currency.iso_code }})</h2>
-
-    <table class="table table-hover table-condensed small">
-        <thead>
-            <tr>
-                <th>{% trans "Account" %}</th>
-                <th>{% trans "Expenses (net)" %}</th>
-                <th>{% trans "Expenses (gross)" %}</th>
-                <th>{% trans "Income (net)" %}</th>
-                <th>{% trans "Income (gross)" %}</th>
-                <th>{% trans "Balance (net)" %}</th>
-                <th>{% trans "Balance (gross)" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for value_dict in account_transactions %}
-                <tr>
-                    <td>{{ value_dict.account.name }}</td>
-                    <td>{{ value_dict.expenses_net_sum_base }}</td>
-                    <td>{{ value_dict.expenses_gross_sum_base }}</td>
-                    <td>{{ value_dict.income_net_sum_base }}</td>
-                    <td>{{ value_dict.income_gross_sum_base }}</td>
-                    <td>{{ value_dict.amount_net_sum_base }}</td>
-                    <td>{{ value_dict.amount_gross_sum_base }}</td>
-                </tr>
-            {% endfor %}
-            <tr>
-                <td><strong>{% trans "Total" %}</strong></td>
-                <td><strong>{{ totals.expenses_net }}</strong></td>
-                <td><strong>{{ totals.expenses_gross }}</strong></td>
-                <td><strong>{{ totals.income_net }}</strong></td>
-                <td><strong>{{ totals.income_gross }}</strong></td>
-                <td><strong>{{ totals.amount_net }}</strong></td>
-                <td><strong>{{ totals.amount_gross }}</strong></td>
-            </tr>
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    {% for value_dict in account_transactions %}
+                        <tr>
+                            <td>{{ value_dict.account.name }}</td>
+                            <td>{{ value_dict.expenses_net_sum_base }}</td>
+                            <td>{{ value_dict.expenses_gross_sum_base }}</td>
+                            <td>{{ value_dict.income_net_sum_base }}</td>
+                            <td>{{ value_dict.income_gross_sum_base }}</td>
+                            <td>{{ value_dict.amount_net_sum_base }}</td>
+                            <td>{{ value_dict.amount_gross_sum_base }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td><strong>{% trans "Total" %}</strong></td>
+                        <td><strong>{{ totals.expenses_net }}</strong></td>
+                        <td><strong>{{ totals.expenses_gross }}</strong></td>
+                        <td><strong>{{ totals.income_net }}</strong></td>
+                        <td><strong>{{ totals.income_gross }}</strong></td>
+                        <td><strong>{{ totals.amount_net }}</strong></td>
+                        <td><strong>{{ totals.amount_gross }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
