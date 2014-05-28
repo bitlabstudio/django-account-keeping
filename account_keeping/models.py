@@ -82,6 +82,9 @@ class Invoice(AmountMixin, models.Model):
         max_digits=10, decimal_places=2, default=0)
     payment_date = models.DateField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['invoice_date', ]
+
     def __unicode__(self):
         if self.invoice_number:
             return self.invoice_number

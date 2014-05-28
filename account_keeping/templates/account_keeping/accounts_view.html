@@ -7,14 +7,15 @@
 
     <ul class="nav nav-tabs">
         {% for value_dict in account_transactions %}
-            <li {% if forloop.counter == 1 %}class="active"{% endif %}><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }}</a></li>
+            <li><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }} ({{ value_dict.transactions.count }})</a></li>
         {% endfor %}
-        <li><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
+        <li class="active"><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
+        <li><a href="#outstanding" data-toggle="tab">{% trans "Outstanding" %} ({{ outstanding_invoices.count }})</a></li>
     </ul>
 
     <div class="tab-content">
         {% for value_dict in account_transactions %}
-        <div class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="{{ value_dict.account.slug }}">
+        <div class="tab-pane" id="{{ value_dict.account.slug }}">
                 <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
                 <table class="table table-hover table-condensed small">
                     <thead>
@@ -88,7 +89,7 @@
             </div>
         {% endfor %}
 
-        <div class="tab-pane" id="totals">
+        <div class="tab-pane active" id="totals">
             <h2>{% trans "Total" %} ({{ base_currency.iso_code }})</h2>
 
             <table class="table table-hover table-condensed small">
@@ -124,6 +125,36 @@
                         <td><strong>{{ totals.amount_net }}</strong></td>
                         <td><strong>{{ totals.amount_gross }}</strong></td>
                     </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane" id="outstanding">
+            <h2>{% trans "Outstanding invoices" %}</h2>
+            <table class="table table-hover table-condensed small">
+                <thead>
+                    <tr>
+                        <th>{% trans "ID" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Invoice number" %}</th>
+                        <th>{% trans "Currency" %}</th>
+                        <th>{% trans "Amount (net)" %}</th>
+                        <th>{% trans "VAT" %}</th>
+                        <th>{% trans "Amount (gross)" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in outstanding_invoices %}
+                    <tr class="{% if invoice.invoice_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
+                        <td><a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.pk }}</a></td>
+                            <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
+                            <td>{{ invoice.invoice_number|default:"n/a" }}</td>
+                            <td>{{ invoice.currency.iso_code }}</td>
+                            <td>{{ invoice.amount_net|intcomma }}</td>
+                            <td>{{ invoice.vat }}</td>
+                            <td>{{ invoice.amount_gross|intcomma }}</td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

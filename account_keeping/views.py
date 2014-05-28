@@ -2,7 +2,7 @@
 from datetime import date
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
@@ -95,18 +95,29 @@ class AccountsViewMixin(object):
                 'income_net_sum_base': income_net_sum_base,
                 'income_gross_sum_base': income_gross_sum_base,
             })
+
+        outstanding = self.get_outstanding_invoices()
+
         ctx.update({
             'view_name': self.get_view_name(),
             'transaction_types': models.Transaction.TRANSACTION_TYPES,
             'base_currency': base_currency,
             'totals': totals,
             'account_transactions': account_transactions,
+            'outstanding_invoices': outstanding,
         })
         return ctx
 
     def get_view_name(self):
         """
         Return the name of the view that is displayed in the main h1-tag.
+
+        """
+        raise NotImplementedError('Method not implemented')  # pragma: no cover
+
+    def get_outstanding_invoices(self):
+        """
+        Returns the transactions that should be shown in this view.
 
         """
         raise NotImplementedError('Method not implemented')  # pragma: no cover
@@ -156,6 +167,13 @@ class MonthView(AccountsViewMixin, TemplateView):
     def get_view_name(self):
         return date_filter(self.month, 'F Y')
 
+    def get_outstanding_invoices(self):
+        next_month = date(self.month.year, self.month.month + 1, 1)
+        return models.Invoice.objects.filter(
+            Q(invoice_date__lte=self.month),
+            Q(payment_date__isnull=True) | Q(payment_date__gte=next_month),
+        )
+
     def get_rate(self, currency):
         return models.CurrencyRate.objects.get(
             year=self.month.year, month=self.month.month,
@@ -181,6 +199,11 @@ class AllTimeView(AccountsViewMixin, TemplateView):
 
     def get_view_name(self):
         return 'All Time Overview'
+
+    def get_outstanding_invoices(self):
+        return models.Invoice.objects.filter(
+            payment_date__isnull=True
+        )
 
     def get_rate(self, currency):
         return models.CurrencyRate.objects.filter(
