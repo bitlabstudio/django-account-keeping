@@ -3,7 +3,11 @@
 
 {% block main %}
 <div class="container">
-    <h1>{{ view_name }}</h1>
+    <h1>
+        {{ view_name }}
+        {% if last_month %}<a class="small" href="{% url "account_keeping_month" year=last_month.year month=last_month.month %}"><span class="glyphicon glyphicon-chevron-left"></span></a>{% endif %}
+        {% if next_month %}<a class="small" href="{% url "account_keeping_month" year=next_month.year month=next_month.month %}"><span class="glyphicon glyphicon-chevron-right"></span></a>{% endif %}
+    </h1>
 
     <ul class="nav nav-tabs">
         {% for value_dict in account_transactions %}

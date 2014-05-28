@@ -7,6 +7,8 @@ from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
+from dateutil import relativedelta
+
 from . import models
 
 
@@ -184,8 +186,17 @@ class MonthView(AccountsViewMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(MonthView, self).get_context_data(**kwargs)
+        last_month = \
+            self.month - relativedelta.relativedelta(months=1)
+        next_month = \
+            self.month + relativedelta.relativedelta(months=1)
+        if next_month > date.today():
+            next_month = None
+
         ctx.update({
             'month': self.month,
+            'last_month': last_month,
+            'next_month': next_month,
         })
         return ctx
 
