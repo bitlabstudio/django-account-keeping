@@ -2,6 +2,11 @@
 from django.test import TestCase
 
 from . import factories
+from .. import models
+
+
+WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
+DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 
 
 class CurrencyTestCase(TestCase):
@@ -75,10 +80,10 @@ class TransactionTestCase(TestCase):
             'If only amount_gross is given and VAT is 0, amount_net should be'
             ' identical to amount_gross'))
 
-        obj = factories.TransactionFactory(transaction_type='C')
+        obj = factories.TransactionFactory(transaction_type=DEPOSIT)
         self.assertEqual(obj.value_net, obj.amount_net, msg=(
-            'When type is credit, the value should be positive'))
+            'When type is deposit, the value should be positive'))
 
-        obj = factories.TransactionFactory(transaction_type='D')
+        obj = factories.TransactionFactory(transaction_type=WITHDRAWAL)
         self.assertEqual(obj.value_net, obj.amount_net * -1, msg=(
-            'When type is debit, the value should be negative'))
+            'When type is withdrawal, the value should be negative'))

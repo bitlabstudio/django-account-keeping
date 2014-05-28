@@ -35,7 +35,7 @@ class AccountFactory(factory.DjangoModelFactory):
 class InvoiceFactory(factory.DjangoModelFactory):
     FACTORY_FOR = models.Invoice
 
-    invoice_type = 'credit'
+    invoice_type = models.Invoice.INVOICE_TYPES['withdrawal']
     invoice_date = factory.LazyAttribute(lambda x: now())
     currency = factory.SubFactory(CurrencyFactory)
     amount_net = 10
@@ -60,7 +60,7 @@ class TransactionFactory(factory.DjangoModelFactory):
 
     account = factory.SubFactory(AccountFactory)
     transaction_date = factory.LazyAttribute(lambda x: now())
-    transaction_type = 'C'
+    transaction_type = models.Transaction.TRANSACTION_TYPES['withdrawal']
     payee = factory.SubFactory(PayeeFactory)
     category = factory.SubFactory(CategoryFactory)
     currency = factory.SubFactory(CurrencyFactory)

@@ -1,7 +1,34 @@
-"""Models for the account_keeping app."""
+"""
+Models for the account_keeping app.
+
+TODO: Add lazy_trans and docstrings
+
+"""
 from decimal import Decimal
 
 from django.db import models
+
+
+class AmountMixin(object):
+    """
+    Mixin that handles amount_net, vat and amount_gross fields on save().
+
+    """
+    def set_amount_fields(self):
+        if self.amount_net and not self.amount_gross:
+            if self.vat:
+                self.amount_gross = \
+                    self.amount_net * (self.vat / Decimal(100.0) + 1)
+            else:
+                self.amount_gross = self.amount_net
+
+        if self.amount_gross and not self.amount_net:
+            if self.vat:
+                self.amount_net = \
+                    Decimal(1.0) / (self.vat / Decimal(100.0) + 1) \
+                    * self.amount_gross
+            else:
+                self.amount_net = self.amount_gross
 
 
 class Currency(models.Model):
@@ -33,14 +60,15 @@ class Account(models.Model):
         return self.name
 
 
-class Invoice(models.Model):
-    INVOICE_TYPES = [
-        'C', 'D',
-    ]
+class Invoice(AmountMixin, models.Model):
+    INVOICE_TYPES = {
+        'withdrawal': 'w',
+        'deposit': 'd',
+    }
 
     INVOICE_TYPE_CHOICES = [
-        (INVOICE_TYPES[0], 'credit'),
-        (INVOICE_TYPES[1], 'debit'),
+        (INVOICE_TYPES['withdrawal'], 'withdrawal'),
+        (INVOICE_TYPES['deposit'], 'deposit'),
     ]
 
     invoice_type = models.CharField(max_length=1, choices=INVOICE_TYPE_CHOICES)
@@ -59,6 +87,10 @@ class Invoice(models.Model):
             return self.invoice_number
         return '{0} - {1}'.format(self.invoice_date, self.invoice_type)
 
+    def save(self, *args, **kwargs):
+        self.set_amount_fields()
+        return super(Invoice, self).save(*args, **kwargs)
+
 
 class Payee(models.Model):
     name = models.CharField(max_length=256)
@@ -74,14 +106,15 @@ class Category(models.Model):
         return self.name
 
 
-class Transaction(models.Model):
-    TRANSACTION_TYPES = [
-        'C', 'D',
-    ]
+class Transaction(AmountMixin, models.Model):
+    TRANSACTION_TYPES = {
+        'withdrawal': 'w',
+        'deposit': 'd',
+    }
 
     TRANSACTION_TYPE_CHOICES = [
-        (TRANSACTION_TYPES[0], 'credit'),
-        (TRANSACTION_TYPES[1], 'debit'),
+        (TRANSACTION_TYPES['withdrawal'], 'withdrawal'),
+        (TRANSACTION_TYPES['deposit'], 'deposit'),
     ]
 
     account = models.ForeignKey(Account, related_name='transactions')
@@ -121,23 +154,9 @@ class Transaction(models.Model):
         return '{0} - {1}'.format(self.payee, self.category)
 
     def save(self, *args, **kwargs):
-        if self.amount_net and not self.amount_gross:
-            if self.vat:
-                self.amount_gross = \
-                    self.amount_net * (self.vat / Decimal(100.0) + 1)
-            else:
-                self.amount_gross = self.amount_net
-
-        if self.amount_gross and not self.amount_net:
-            if self.vat:
-                self.amount_net = \
-                    Decimal(1.0) / (self.vat / Decimal(100.0) + 1) \
-                    * self.amount_gross
-            else:
-                self.amount_net = self.amount_gross
-
+        self.set_amount_fields()
         multiplier = 1
-        if self.transaction_type == 'D':
+        if self.transaction_type == self.TRANSACTION_TYPES['withdrawal']:
             multiplier = -1
         self.value_net = self.amount_net * multiplier
         self.value_gross = self.amount_gross * multiplier

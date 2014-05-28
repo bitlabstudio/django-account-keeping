@@ -35,3 +35,28 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
+
+
+class AllTimeViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``AllTimeView`` view class."""
+    longMessage = True
+    view_class = views.AllTimeView
+
+    def setUp(self):
+        self.user = UserFactory(is_superuser=True)
+        self.trans1 = factories.TransactionFactory()
+        self.account = self.trans1.account
+        self.account.currency.is_base_currency = True
+        self.account.currency.save()
+        self.trans2 = factories.TransactionFactory()
+        factories.CurrencyRateFactory(
+            currency=self.trans2.account.currency,
+            year=now().year, month=now().month,
+        )
+
+    def get_view_kwargs(self):
+        return {}
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.is_callable(self.user)

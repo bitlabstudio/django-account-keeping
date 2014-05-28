@@ -6,6 +6,10 @@ from . import views
 
 urlpatterns = patterns(
     '',
+    url(r'all/$',
+        views.AllTimeView.as_view(),
+        name='account_keeping_all'),
+
     url(r'(?P<year>\d+)/(?P<month>\d+)/$',
         views.MonthView.as_view(),
         name='account_keeping_month'),
