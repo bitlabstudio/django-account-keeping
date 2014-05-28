@@ -96,7 +96,40 @@ class AccountsViewMixin(object):
                 'income_gross_sum_base': income_gross_sum_base,
             })
 
-        outstanding = self.get_outstanding_invoices()
+        qs = self.get_outstanding_invoices()
+        outstanding_expenses_gross_sum_base = 0
+        outstanding_income_gross_sum_base = 0
+        outstanding_amount_gross_sum_base = 0
+        outstanding_ccy_totals = {}
+        for currency in models.Currency.objects.all():
+            rate = 1
+            if not currency.is_base_currency:
+                rate = self.get_rate(currency)
+            outstanding_expenses_gross_sum = qs.filter(
+                invoice_type=withdrawal, currency=currency).aggregate(
+                    Sum('amount_gross'))['amount_gross__sum'] or 0
+            outstanding_expenses_gross_sum_base += \
+                outstanding_expenses_gross_sum * rate
+
+            outstanding_income_gross_sum = qs.filter(
+                invoice_type=deposit, currency=currency).aggregate(
+                    Sum('amount_gross'))['amount_gross__sum'] or 0
+            outstanding_income_gross_sum_base += \
+                outstanding_income_gross_sum * rate
+
+            outstanding_amount_gross_sum_base = \
+                outstanding_income_gross_sum - outstanding_expenses_gross_sum
+
+            outstanding_ccy_totals[currency] = {
+                'expenses_gross': outstanding_expenses_gross_sum_base,
+                'income_gross': outstanding_income_gross_sum_base,
+                'amount_gross': outstanding_amount_gross_sum_base,
+            }
+
+        totals['outstanding_expenses_gross'] = \
+            outstanding_expenses_gross_sum_base
+        totals['outstanding_income_gross'] = outstanding_income_gross_sum_base
+        totals['outstanding_amount_gross'] = outstanding_amount_gross_sum_base
 
         ctx.update({
             'view_name': self.get_view_name(),
@@ -104,7 +137,8 @@ class AccountsViewMixin(object):
             'base_currency': base_currency,
             'totals': totals,
             'account_transactions': account_transactions,
-            'outstanding_invoices': outstanding,
+            'outstanding_invoices': qs,
+            'outstanding_ccy_totals': outstanding_ccy_totals,
         })
         return ctx
 

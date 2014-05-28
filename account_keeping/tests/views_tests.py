@@ -16,15 +16,17 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory(is_superuser=True)
-        self.trans1 = factories.TransactionFactory()
-        self.account = self.trans1.account
-        self.account.currency.is_base_currency = True
-        self.account.currency.save()
-        self.trans2 = factories.TransactionFactory()
+        self.ccy = factories.CurrencyFactory(is_base_currency=True)
+        self.account = factories.AccountFactory(currency=self.ccy)
+        self.trans1 = factories.TransactionFactory(
+            account=self.account, currency=self.ccy)
+
+        self.ccy2 = factories.CurrencyFactory()
+        self.account2 = factories.AccountFactory(currency=self.ccy2)
+        self.trans2 = factories.TransactionFactory(
+            account=self.account2, currency=self.ccy2)
         factories.CurrencyRateFactory(
-            currency=self.trans2.account.currency,
-            year=now().year, month=now().month,
-        )
+            currency=self.ccy2, year=now().year, month=now().month)
 
     def get_view_kwargs(self):
         return {
@@ -44,15 +46,17 @@ class AllTimeViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory(is_superuser=True)
-        self.trans1 = factories.TransactionFactory()
-        self.account = self.trans1.account
-        self.account.currency.is_base_currency = True
-        self.account.currency.save()
-        self.trans2 = factories.TransactionFactory()
+        self.ccy = factories.CurrencyFactory(is_base_currency=True)
+        self.account = factories.AccountFactory(currency=self.ccy)
+        self.trans1 = factories.TransactionFactory(
+            account=self.account, currency=self.ccy)
+
+        self.ccy2 = factories.CurrencyFactory()
+        self.account2 = factories.AccountFactory(currency=self.ccy2)
+        self.trans2 = factories.TransactionFactory(
+            account=self.account2, currency=self.ccy2)
         factories.CurrencyRateFactory(
-            currency=self.trans2.account.currency,
-            year=now().year, month=now().month,
-        )
+            currency=self.ccy2, year=now().year, month=now().month)
 
     def get_view_kwargs(self):
         return {}
