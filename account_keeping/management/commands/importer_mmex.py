@@ -48,6 +48,7 @@ class Command(BaseCommand):
         vat = options.get('vat')
         if not vat:
             vat = 0
+        vat = Decimal(vat)
 
         filepath = options.get('filepath')
 
