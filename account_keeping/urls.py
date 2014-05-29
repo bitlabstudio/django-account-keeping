@@ -13,4 +13,8 @@ urlpatterns = patterns(
     url(r'(?P<year>\d+)/(?P<month>\d+)/$',
         views.MonthView.as_view(),
         name='account_keeping_month'),
+
+    url(r'(?P<year>\d+)/$',
+        views.YearOverviewView.as_view(),
+        name='account_keeping_year'),
 )

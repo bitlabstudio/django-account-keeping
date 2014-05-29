@@ -2,6 +2,7 @@
 from datetime import date
 
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from django.db.models import Q, Sum
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
@@ -10,6 +11,10 @@ from django.views.generic import TemplateView
 from dateutil import relativedelta
 
 from . import models
+
+
+DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
+WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
 
 
 class AccountsViewMixin(object):
@@ -48,22 +53,19 @@ class AccountsViewMixin(object):
 
             qs = self.get_transactions(account)
 
-            deposit = models.Transaction.TRANSACTION_TYPES['deposit']
-            withdrawal = models.Transaction.TRANSACTION_TYPES['withdrawal']
-
             amount_net_sum = qs.aggregate(
                 Sum('value_net'))['value_net__sum'] or 0
             amount_gross_sum = qs.aggregate(
                 Sum('value_gross'))['value_gross__sum'] or 0
             expenses_net_sum = qs.filter(
-                transaction_type=withdrawal).aggregate(
+                transaction_type=WITHDRAWAL).aggregate(
                     Sum('amount_net'))['amount_net__sum'] or 0
             expenses_gross_sum = qs.filter(
-                transaction_type=withdrawal).aggregate(
+                transaction_type=WITHDRAWAL).aggregate(
                     Sum('amount_gross'))['amount_gross__sum'] or 0
-            income_net_sum = qs.filter(transaction_type=deposit).aggregate(
+            income_net_sum = qs.filter(transaction_type=DEPOSIT).aggregate(
                 Sum('amount_net'))['amount_net__sum'] or 0
-            income_gross_sum = qs.filter(transaction_type=deposit).aggregate(
+            income_gross_sum = qs.filter(transaction_type=DEPOSIT).aggregate(
                 Sum('amount_gross'))['amount_gross__sum'] or 0
 
             amount_net_sum_base = amount_net_sum * rate
@@ -108,13 +110,13 @@ class AccountsViewMixin(object):
             if not currency.is_base_currency:
                 rate = self.get_rate(currency)
             outstanding_expenses_gross_sum = qs.filter(
-                invoice_type=withdrawal, currency=currency).aggregate(
+                invoice_type=WITHDRAWAL, currency=currency).aggregate(
                     Sum('amount_gross'))['amount_gross__sum'] or 0
             outstanding_expenses_gross_sum_base += \
                 outstanding_expenses_gross_sum * rate
 
             outstanding_income_gross_sum = qs.filter(
-                invoice_type=deposit, currency=currency).aggregate(
+                invoice_type=DEPOSIT, currency=currency).aggregate(
                     Sum('amount_gross'))['amount_gross__sum'] or 0
             outstanding_income_gross_sum_base += \
                 outstanding_income_gross_sum * rate
@@ -259,3 +261,79 @@ class AllTimeView(AccountsViewMixin, TemplateView):
             account=account,
             parent__isnull=True,
         )
+
+
+class YearOverviewView(TemplateView):
+    template_name = 'account_keeping/year_view.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.year = int(kwargs.get('year'))
+        return super(YearOverviewView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super(YearOverviewView, self).get_context_data(**kwargs)
+        last_year = self.year - 1
+        next_year = self.year + 1
+        if next_year > date.today().year:
+            next_year = None
+
+        rates = {}
+        for currency in models.Currency.objects.all():
+            rates[currency.pk] = 1
+            if not currency.is_base_currency:
+                rates[currency.pk] = self.get_rate(currency)
+
+        truncate_date = connection.ops.date_trunc_sql(
+            'month', 'transaction_date')
+        qs_year = models.Transaction.objects.filter(
+            parent__isnull=True, transaction_date__year=self.year).extra(
+                {'month': truncate_date})
+
+        qs_income = qs_year.filter(
+            transaction_type=DEPOSIT).values(
+                'month', 'currency').annotate(
+                    Sum('amount_gross')).order_by('currency', 'month')
+        for row in qs_income:
+            row['amount_gross__sum'] = \
+                row['amount_gross__sum'] * rates[row['currency']]
+        income_total = {}
+        months = []
+        for row in qs_income:
+            if row['month'] not in months:
+                months.append(row['month'])
+            if row['month'] not in income_total:
+                income_total[row['month']] = 0
+            income_total[row['month']] += row['amount_gross__sum']
+
+        qs_expenses = qs_year.filter(
+            transaction_type=WITHDRAWAL).values(
+                'month', 'currency').annotate(
+                    Sum('amount_gross')).order_by('currency', 'month')
+        for row in qs_expenses:
+            row['amount_gross__sum'] = \
+                row['amount_gross__sum'] * rates[row['currency']]
+        expenses_total = {}
+        for row in qs_expenses:
+            if row['month'] not in expenses_total:
+                expenses_total[row['month']] = 0
+            expenses_total[row['month']] += row['amount_gross__sum']
+
+        profit_total = {}
+        for month in months:
+            profit_total[month] = income_total[month] - expenses_total[month]
+
+        ctx.update({
+            'year': self.year,
+            'last_year': last_year,
+            'next_year': next_year,
+            'months': months,
+            'income_total': income_total,
+            'expenses_total': expenses_total,
+            'profit_total': profit_total,
+        })
+        return ctx
+
+    def get_rate(self, currency):
+        return models.CurrencyRate.objects.filter(
+            currency=currency).order_by('-year', '-month')[:1][0].rate

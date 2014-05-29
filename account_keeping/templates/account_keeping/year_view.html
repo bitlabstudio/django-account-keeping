@@ -1,0 +1,37 @@
+{% extends "account_keeping/base.html" %}
+{% load humanize i18n libs_tags %}
+
+{% block main %}
+<div class="container">
+    <h1>
+        {% trans "Year overview" %} ({{ year }})
+        {% if last_year %}<a class="small" href="{% url "account_keeping_year" year=last_year %}"><span class="glyphicon glyphicon-chevron-left"></span></a>{% endif %}
+        {% if next_year %}<a class="small" href="{% url "account_keeping_year" year=next_year %}"><span class="glyphicon glyphicon-chevron-right"></span></a>{% endif %}
+    </h1>
+
+    <table class="table table-hover table-condensed small">
+        <thead>
+            <tr>
+                <th>{% trans "Month" %}</th>
+                <th>{% trans "Income" %}</th>
+                <th>{% trans "Expenses" %}</th>
+                <th>{% trans "Profit" %}</th>
+                <th>{% trans "New outstanding" %}</th>
+                <th>{% trans "Total outstanding" %}</th>
+                <th>{% trans "Bank balance" %}</th>
+                <th>{% trans "Total equity" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for month in months %}
+                <tr>
+                    <td>{{ month }}</td>
+                    <td>{% call income_total "get" month as income_total_value %}{{ income_total_value }}</td>
+                    <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value }}</td>
+                    <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
