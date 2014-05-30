@@ -394,6 +394,31 @@ class YearOverviewView(TemplateView):
             except IndexError:
                 outstanding_total[month] = 0
 
+        balance_total = {}
+        for month in months:
+            month_date = datetime.strptime(month, '%Y-%m-%d')
+            month_end = month_date + relativedelta.relativedelta(
+                months=1, seconds=-1)
+            for account in models.Account.objects.all():
+                qs_balance = models.Transaction.objects.filter(
+                    account=account,
+                    parent__isnull=True,
+                    transaction_date__lte=month_end,
+                ).aggregate(Sum('value_gross'))
+                qs_balance['value_gross__sum'] += account.initial_amount
+                if not account.currency.is_base_currency:
+                    qs_balance['value_gross__sum'] = \
+                        qs_balance['value_gross__sum'] \
+                        * month_rates[month][account.currency.pk]
+                if month not in balance_total:
+                    balance_total[month] = 0
+                balance_total[month] += qs_balance['value_gross__sum']
+
+        equity_total = {}
+        for month in months:
+            equity_total[month] = \
+                balance_total[month] + outstanding_total[month]
+
         ctx.update({
             'year': self.year,
             'last_year': last_year,
@@ -404,6 +429,8 @@ class YearOverviewView(TemplateView):
             'profit_total': profit_total,
             'new_total': new_total,
             'outstanding_total': outstanding_total,
+            'balance_total': balance_total,
+            'equity_total': equity_total,
         })
         return ctx
 
