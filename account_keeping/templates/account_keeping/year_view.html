@@ -29,6 +29,8 @@
                     <td>{% call income_total "get" month as income_total_value %}{{ income_total_value }}</td>
                     <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value }}</td>
                     <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value }}</td>
+                    <td>{% call new_total "get" month as new_total_value %}{{ new_total_value }}</td>
+                    <td>{% call outstanding_total "get" month as outstanding_total_value %}{{ outstanding_total_value }}</td>
                 </tr>
             {% endfor %}
         </tbody>

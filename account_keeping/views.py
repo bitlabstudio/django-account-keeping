@@ -1,9 +1,9 @@
 """Views for the account_keeping app."""
-from datetime import date
+from datetime import date, datetime
 
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
@@ -278,14 +278,9 @@ class YearOverviewView(TemplateView):
         if next_year > date.today().year:
             next_year = None
 
-        rates = {}
-        for currency in models.Currency.objects.all():
-            rates[currency.pk] = 1
-            if not currency.is_base_currency:
-                rates[currency.pk] = self.get_rate(currency)
-
         truncate_date = connection.ops.date_trunc_sql(
             'month', 'transaction_date')
+
         qs_year = models.Transaction.objects.filter(
             parent__isnull=True, transaction_date__year=self.year).extra(
                 {'month': truncate_date})
@@ -294,11 +289,9 @@ class YearOverviewView(TemplateView):
             transaction_type=DEPOSIT).values(
                 'month', 'currency').annotate(
                     Sum('amount_gross')).order_by('currency', 'month')
-        for row in qs_income:
-            row['amount_gross__sum'] = \
-                row['amount_gross__sum'] * rates[row['currency']]
-        income_total = {}
+
         months = []
+        income_total = {}
         for row in qs_income:
             if row['month'] not in months:
                 months.append(row['month'])
@@ -306,13 +299,35 @@ class YearOverviewView(TemplateView):
                 income_total[row['month']] = 0
             income_total[row['month']] += row['amount_gross__sum']
 
+        month_rates = {}
+        for month in months:
+            month_date = datetime.strptime(month, '%Y-%m-%d')
+            for currency in models.Currency.objects.all():
+                rate = 1
+                if not currency.is_base_currency:
+                    rate = models.CurrencyRate.objects.get(
+                        currency=currency,
+                        year=month_date.year,
+                        month=month_date.month).rate
+                if month not in month_rates:
+                    month_rates[month] = {}
+                month_rates[month][currency.pk] = rate
+
+        for row in qs_income:
+            row['amount_gross__sum'] = \
+                row['amount_gross__sum'] \
+                * month_rates[row['month']][row['currency']]
+
         qs_expenses = qs_year.filter(
             transaction_type=WITHDRAWAL).values(
                 'month', 'currency').annotate(
                     Sum('amount_gross')).order_by('currency', 'month')
+
         for row in qs_expenses:
             row['amount_gross__sum'] = \
-                row['amount_gross__sum'] * rates[row['currency']]
+                row['amount_gross__sum'] \
+                * month_rates[row['month']][row['currency']]
+
         expenses_total = {}
         for row in qs_expenses:
             if row['month'] not in expenses_total:
@@ -323,6 +338,62 @@ class YearOverviewView(TemplateView):
         for month in months:
             profit_total[month] = income_total[month] - expenses_total[month]
 
+        truncate_invoice_date = connection.ops.date_trunc_sql(
+            'month', 'invoice_date')
+        truncate_payment_date = connection.ops.date_trunc_sql(
+            'payment_month', 'payment_date')
+        qs_invoices_year = models.Invoice.objects.filter(
+            invoice_date__year=self.year).extra({
+                'month': truncate_invoice_date,
+                'payment_month': truncate_payment_date})
+
+        qs_new = qs_invoices_year.filter(
+            invoice_type=DEPOSIT).values(
+                'month', 'currency').annotate(
+                    Sum('amount_gross')).order_by('currency', 'month')
+
+        for row in qs_new:
+            row['amount_gross__sum'] = \
+                row['amount_gross__sum'] \
+                * month_rates[row['month']][row['currency']]
+
+        new_total = {}
+        for row in qs_new:
+            if row['month'] not in new_total:
+                new_total[row['month']] = 0
+            new_total[row['month']] += row['amount_gross__sum']
+        for month in months:
+            if month not in new_total:
+                new_total[month] = 0
+
+        outstanding_total = {}
+        for month in months:
+            # for each month, we want to Sum the invoices, that were still
+            # outstanding as of that month. An invoice sent in February and
+            # paid in May would appear as outstanding on the months February,
+            # March, April.
+            month_date = datetime.strptime(month, '%Y-%m-%d')
+            start = date(1900, 1, 1)
+            end = month_date + relativedelta.relativedelta(
+                months=1, seconds=-1)
+            qs_outstanding_month = qs_invoices_year.filter(
+                invoice_type=DEPOSIT,
+                invoice_date__range=(start, end),
+                payment_date__gt=F('invoice_date')).exclude(
+                    payment_date__year=self.year,
+                    payment_date__month=month_date.month).values(
+                        'month', 'currency').annotate(
+                            Sum('amount_gross')).order_by('currency', 'month')
+            for row in qs_outstanding_month:
+                row['amount_gross__sum'] = \
+                    row['amount_gross__sum'] \
+                    * month_rates[row['month']][row['currency']]
+            try:
+                outstanding_total[month] = \
+                    qs_outstanding_month[0]['amount_gross__sum']
+            except IndexError:
+                outstanding_total[month] = 0
+
         ctx.update({
             'year': self.year,
             'last_year': last_year,
@@ -331,6 +402,8 @@ class YearOverviewView(TemplateView):
             'income_total': income_total,
             'expenses_total': expenses_total,
             'profit_total': profit_total,
+            'new_total': new_total,
+            'outstanding_total': outstanding_total,
         })
         return ctx
 
