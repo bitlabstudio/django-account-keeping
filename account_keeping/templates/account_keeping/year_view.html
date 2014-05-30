@@ -35,6 +35,26 @@
                     <td>{% call equity_total "get" month as equity_total_value %}{{ equity_total_value|intcomma }}</td>
                 </tr>
             {% endfor %}
+            <tr>
+                <td><strong>{% trans "Total" %}</strong></td>
+                <td><strong>{{ income_total_total|intcomma }}</strong></td>
+                <td><strong>{{ expenses_total_total|intcomma }}</strong></td>
+                <td><strong>{{ profit_total_total|intcomma }}</strong></td>
+                <td><strong>{{ new_total_total|intcomma }}</strong></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><strong>{% trans "Average" %}</strong></td>
+                <td><strong>{{ income_average|intcomma }}</strong></td>
+                <td><strong>{{ expenses_average|intcomma }}</strong></td>
+                <td><strong>{{ profit_average|intcomma }}</strong></td>
+                <td><strong>{{ new_average|intcomma }}</strong></td>
+                <td><strong>{{ outstanding_average|intcomma }}</strong></td>
+                <td><strong>{{ balance_average|intcomma }}</strong></td>
+                <td><strong>{{ equity_average|intcomma }}</strong></td>
+            </tr>
         </tbody>
     </table>
 </div>

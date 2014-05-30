@@ -419,6 +419,41 @@ class YearOverviewView(TemplateView):
             equity_total[month] = \
                 balance_total[month] + outstanding_total[month]
 
+        income_total_total = 0
+        for month in months:
+            income_total_total += income_total[month]
+        income_average = income_total_total / len(months)
+
+        expenses_total_total = 0
+        for month in months:
+            expenses_total_total += expenses_total[month]
+        expenses_average = expenses_total_total / len(months)
+
+        profit_total_total = 0
+        for month in months:
+            profit_total_total += profit_total[month]
+        profit_average = profit_total_total / len(months)
+
+        new_total_total = 0
+        for month in months:
+            new_total_total += new_total[month]
+        new_average = new_total_total / len(months)
+
+        outstanding_total_total = 0
+        for month in months:
+            outstanding_total_total += outstanding_total[month]
+        outstanding_average = outstanding_total_total / len(months)
+
+        balance_total_total = 0
+        for month in months:
+            balance_total_total += balance_total[month]
+        balance_average = balance_total_total / len(months)
+
+        equity_total_total = 0
+        for month in months:
+            equity_total_total += equity_total[month]
+        equity_average = equity_total_total / len(months)
+
         ctx.update({
             'year': self.year,
             'last_year': last_year,
@@ -431,6 +466,17 @@ class YearOverviewView(TemplateView):
             'outstanding_total': outstanding_total,
             'balance_total': balance_total,
             'equity_total': equity_total,
+            'income_total_total': income_total_total,
+            'expenses_total_total': expenses_total_total,
+            'profit_total_total': profit_total_total,
+            'new_total_total': new_total_total,
+            'income_average': income_average,
+            'expenses_average': expenses_average,
+            'profit_average': profit_average,
+            'new_average': new_average,
+            'outstanding_average': outstanding_average,
+            'balance_average': balance_average,
+            'equity_average': equity_average,
         })
         return ctx
 
