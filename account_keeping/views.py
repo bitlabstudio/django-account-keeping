@@ -1,5 +1,5 @@
 """Views for the account_keeping app."""
-from datetime import date, datetime
+from datetime import date
 
 from django.contrib.auth.decorators import login_required
 from django.db import connection
@@ -301,14 +301,13 @@ class YearOverviewView(TemplateView):
 
         month_rates = {}
         for month in months:
-            month_date = datetime.strptime(month, '%Y-%m-%d')
             for currency in models.Currency.objects.all():
                 rate = 1
                 if not currency.is_base_currency:
                     rate = models.CurrencyRate.objects.get(
                         currency=currency,
-                        year=month_date.year,
-                        month=month_date.month).rate
+                        year=month.year,
+                        month=month.month).rate
                 if month not in month_rates:
                     month_rates[month] = {}
                 month_rates[month][currency.pk] = rate
@@ -372,16 +371,15 @@ class YearOverviewView(TemplateView):
             # outstanding as of that month. An invoice sent in February and
             # paid in May would appear as outstanding on the months February,
             # March, April.
-            month_date = datetime.strptime(month, '%Y-%m-%d')
             start = date(1900, 1, 1)
-            end = month_date + relativedelta.relativedelta(
+            end = month + relativedelta.relativedelta(
                 months=1, seconds=-1)
             qs_outstanding_month = qs_invoices_year.filter(
                 invoice_type=DEPOSIT,
                 invoice_date__range=(start, end),
                 payment_date__gt=F('invoice_date')).exclude(
                     payment_date__year=self.year,
-                    payment_date__month=month_date.month).values(
+                    payment_date__month=month.month).values(
                         'month', 'currency').annotate(
                             Sum('amount_gross')).order_by('currency', 'month')
             for row in qs_outstanding_month:
@@ -396,8 +394,7 @@ class YearOverviewView(TemplateView):
 
         balance_total = {}
         for month in months:
-            month_date = datetime.strptime(month, '%Y-%m-%d')
-            month_end = month_date + relativedelta.relativedelta(
+            month_end = month + relativedelta.relativedelta(
                 months=1, seconds=-1)
             for account in models.Account.objects.all():
                 qs_balance = models.Transaction.objects.filter(

@@ -1,3 +1,9 @@
+=== ongoing ===
+
+- sqlite and postgres return different things when truncating a date, applied
+  quick fix so that it works with postgres / need to find a workaround so that
+  tests and real-world-usage both work
+
 === 0.1 ===
 - Initial commit
 
