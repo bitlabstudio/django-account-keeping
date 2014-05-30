@@ -81,6 +81,7 @@ class Invoice(AmountMixin, models.Model):
     amount_gross = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
     payment_date = models.DateField(blank=True, null=True)
+    pdf = models.FileField(upload_to='invoice_files', blank=True, null=True)
 
     class Meta:
         ordering = ['invoice_date', ]

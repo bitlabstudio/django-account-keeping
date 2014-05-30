@@ -8,4 +8,3 @@ dist/
 docs/_build/
 app_media/
 app_static/
-migrations/
