@@ -1,5 +1,5 @@
 {% extends "account_keeping/base.html" %}
-{% load humanize i18n libs_tags %}
+{% load account_keeping_tags humanize i18n libs_tags %}
 
 {% block main %}
 <div class="container">
@@ -55,10 +55,10 @@
                                 </td>
                                 <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
                                 <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
-                                <td>{{ transaction.amount_net|intcomma }}</td>
+                                <td>{{ transaction.amount_net|currency }}</td>
                                 <td>{{ transaction.vat }}</td>
-                                <td>{{ transaction.amount_gross|intcomma }}</td>
-                                <td>{{ BALANCE|intcomma }}</td>
+                                <td>{{ transaction.amount_gross|currency }}</td>
+                                <td>{{ BALANCE|currency }}</td>
                             </tr>
                         {% empty %}
                             <tr><td colspan="10">{% trans "No transactions found for this month." %}</td></tr>
@@ -69,23 +69,23 @@
                         </tr>
                         <tr>
                             <td colspan="6"><strong>{% trans "Expenses total" %}</strong></td>
-                            <td><strong>{{ value_dict.expenses_net_total }}</strong></td>
+                            <td><strong>{{ value_dict.expenses_net_total|currency }}</strong></td>
                             <td></td>
-                            <td><strong>{{ value_dict.expenses_gross_total }}</strong></td>
+                            <td><strong>{{ value_dict.expenses_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                         <tr>
                             <td colspan="6"><strong>{% trans "Income total" %}</strong></td>
-                            <td><strong>{{ value_dict.income_net_total }}</strong></td>
+                            <td><strong>{{ value_dict.income_net_total|currency }}</strong></td>
                             <td></td>
-                            <td><strong>{{ value_dict.income_gross_total }}</strong></td>
+                            <td><strong>{{ value_dict.income_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                         <tr>
                             <td colspan="6"><strong>{% trans "Balance total" %}</strong></td>
-                            <td><strong>{{ value_dict.amount_net_total }}</strong></td>
+                            <td><strong>{{ value_dict.amount_net_total|currency }}</strong></td>
                             <td></td>
-                            <td><strong>{{ value_dict.amount_gross_total }}</strong></td>
+                            <td><strong>{{ value_dict.amount_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -112,22 +112,22 @@
                     {% for value_dict in account_transactions %}
                         <tr>
                             <td>{{ value_dict.account.name }}</td>
-                            <td>{{ value_dict.expenses_net_sum_base }}</td>
-                            <td>{{ value_dict.expenses_gross_sum_base }}</td>
-                            <td>{{ value_dict.income_net_sum_base }}</td>
-                            <td>{{ value_dict.income_gross_sum_base }}</td>
-                            <td>{{ value_dict.amount_net_sum_base }}</td>
-                            <td>{{ value_dict.amount_gross_sum_base }}</td>
+                            <td>{{ value_dict.expenses_net_sum_base|currency }}</td>
+                            <td>{{ value_dict.expenses_gross_sum_base|currency }}</td>
+                            <td>{{ value_dict.income_net_sum_base|currency }}</td>
+                            <td>{{ value_dict.income_gross_sum_base|currency }}</td>
+                            <td>{{ value_dict.amount_net_sum_base|currency }}</td>
+                            <td>{{ value_dict.amount_gross_sum_base|currency }}</td>
                         </tr>
                     {% endfor %}
                     <tr>
                         <td><strong>{% trans "Total" %}</strong></td>
-                        <td><strong>{{ totals.expenses_net }}</strong></td>
-                        <td><strong>{{ totals.expenses_gross }}</strong></td>
-                        <td><strong>{{ totals.income_net }}</strong></td>
-                        <td><strong>{{ totals.income_gross }}</strong></td>
-                        <td><strong>{{ totals.amount_net }}</strong></td>
-                        <td><strong>{{ totals.amount_gross }}</strong></td>
+                        <td><strong>{{ totals.expenses_net|currency }}</strong></td>
+                        <td><strong>{{ totals.expenses_gross|currency }}</strong></td>
+                        <td><strong>{{ totals.income_net|currency }}</strong></td>
+                        <td><strong>{{ totals.income_gross|currency }}</strong></td>
+                        <td><strong>{{ totals.amount_net|currency }}</strong></td>
+                        <td><strong>{{ totals.amount_gross|currency }}</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -147,16 +147,16 @@
                     {% for currency, ccy_totals in outstanding_ccy_totals.items %}
                         <tr>
                             <th>{{ currency.iso_code }}</th>
-                            <th>{{ ccy_totals.expenses_gross|intcomma }}</th>
-                            <th>{{ ccy_totals.income_gross|intcomma }}</th>
-                            <th>{{ ccy_totals.amount_gross|intcomma }}</th>
+                            <th>{{ ccy_totals.expenses_gross|currency }}</th>
+                            <th>{{ ccy_totals.income_gross|currency }}</th>
+                            <th>{{ ccy_totals.amount_gross|currency }}</th>
                         </tr>
                     {% endfor %}
                     <tr>
                         <th><strong>{% trans "Total" %}</strong></th>
-                        <th>{{ totals.outstanding_expenses_gross|intcomma }}</th>
-                        <th>{{ totals.outstanding_income_gross|intcomma }}</th>
-                        <th>{{ totals.outstanding_amount_gross|intcomma }}</th>
+                        <th>{{ totals.outstanding_expenses_gross|currency }}</th>
+                        <th>{{ totals.outstanding_income_gross|currency }}</th>
+                        <th>{{ totals.outstanding_amount_gross|currency }}</th>
                     </tr>
                 </tbody>
             </table>
@@ -183,9 +183,9 @@
                             <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
                             <td>{{ invoice.invoice_number|default:"n/a" }}</td>
                             <td>{{ invoice.currency.iso_code }}</td>
-                            <td>{{ invoice.amount_net|intcomma }}</td>
+                            <td>{{ invoice.amount_net|currency }}</td>
                             <td>{{ invoice.vat }}</td>
-                            <td>{{ invoice.amount_gross|intcomma }}</td>
+                            <td>{{ invoice.amount_gross|currency }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

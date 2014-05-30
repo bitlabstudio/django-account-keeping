@@ -1,5 +1,5 @@
 {% extends "account_keeping/base.html" %}
-{% load humanize i18n libs_tags %}
+{% load account_keeping_tags humanize i18n libs_tags %}
 
 {% block main %}
 <div class="container">
@@ -26,34 +26,34 @@
             {% for month in months %}
                 <tr>
                     <td>{{ month }}</td>
-                    <td>{% call income_total "get" month as income_total_value %}{{ income_total_value|intcomma }}</td>
-                    <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value|intcomma }}</td>
-                    <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value|intcomma }}</td>
-                    <td>{% call new_total "get" month as new_total_value %}{{ new_total_value|intcomma }}</td>
-                    <td>{% call outstanding_total "get" month as outstanding_total_value %}{{ outstanding_total_value|intcomma }}</td>
-                    <td>{% call balance_total "get" month as balance_total_value %}{{ balance_total_value|intcomma }}</td>
-                    <td>{% call equity_total "get" month as equity_total_value %}{{ equity_total_value|intcomma }}</td>
+                    <td>{% call income_total "get" month as income_total_value %}{{ income_total_value|currency }}</td>
+                    <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value|currency }}</td>
+                    <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value|currency }}</td>
+                    <td>{% call new_total "get" month as new_total_value %}{{ new_total_value|currency }}</td>
+                    <td>{% call outstanding_total "get" month as outstanding_total_value %}{{ outstanding_total_value|currency }}</td>
+                    <td>{% call balance_total "get" month as balance_total_value %}{{ balance_total_value|currency }}</td>
+                    <td>{% call equity_total "get" month as equity_total_value %}{{ equity_total_value|currency }}</td>
                 </tr>
             {% endfor %}
             <tr>
                 <td><strong>{% trans "Total" %}</strong></td>
-                <td><strong>{{ income_total_total|intcomma }}</strong></td>
-                <td><strong>{{ expenses_total_total|intcomma }}</strong></td>
-                <td><strong>{{ profit_total_total|intcomma }}</strong></td>
-                <td><strong>{{ new_total_total|intcomma }}</strong></td>
+                <td><strong>{{ income_total_total|currency }}</strong></td>
+                <td><strong>{{ expenses_total_total|currency }}</strong></td>
+                <td><strong>{{ profit_total_total|currency }}</strong></td>
+                <td><strong>{{ new_total_total|currency }}</strong></td>
                 <td></td>
                 <td></td>
                 <td></td>
             </tr>
             <tr>
                 <td><strong>{% trans "Average" %}</strong></td>
-                <td><strong>{{ income_average|intcomma }}</strong></td>
-                <td><strong>{{ expenses_average|intcomma }}</strong></td>
-                <td><strong>{{ profit_average|intcomma }}</strong></td>
-                <td><strong>{{ new_average|intcomma }}</strong></td>
-                <td><strong>{{ outstanding_average|intcomma }}</strong></td>
-                <td><strong>{{ balance_average|intcomma }}</strong></td>
-                <td><strong>{{ equity_average|intcomma }}</strong></td>
+                <td><strong>{{ income_average|currency }}</strong></td>
+                <td><strong>{{ expenses_average|currency }}</strong></td>
+                <td><strong>{{ profit_average|currency }}</strong></td>
+                <td><strong>{{ new_average|currency }}</strong></td>
+                <td><strong>{{ outstanding_average|currency }}</strong></td>
+                <td><strong>{{ balance_average|currency}}</strong></td>
+                <td><strong>{{ equity_average|currency }}</strong></td>
             </tr>
         </tbody>
     </table>

@@ -1,10 +1,11 @@
+import locale
+
 from django import template
 
+locale.setlocale(locale.LC_ALL, '')
 register = template.Library()
 
-# @register.filter
-# def lower(value):
-#    '''
-#    Converts a string into all lowercase
-#    '''
-#    return value.lower()
+
+@register.filter()
+def currency(value):
+    return locale.currency(value, symbol=False, grouping=True)
