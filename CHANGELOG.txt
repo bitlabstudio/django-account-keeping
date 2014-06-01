@@ -1,5 +1,7 @@
 === ongoing ===
 
+- Added unicode method to CurrencyRate model
+
 === 0.1.1 ===
 
 - sqlite and postgres return different things when truncating a date, applied

@@ -46,6 +46,10 @@ class CurrencyRate(models.Model):
     month = models.PositiveIntegerField()
     rate = models.DecimalField(max_digits=18, decimal_places=8)
 
+    def __unicode__(self):
+        return '{0}, {1}-{2}: {3}'.format(
+            self.currency.iso_code, self.year, self.month, self.rate)
+
 
 class Account(models.Model):
     name = models.CharField(max_length=128)
