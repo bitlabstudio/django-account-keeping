@@ -1,5 +1,7 @@
 === ongoing ===
 
+=== 0.1.3 ===
+
 - Added filters to admins
 
 === 0.1.2 ===
