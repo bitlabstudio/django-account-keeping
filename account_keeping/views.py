@@ -215,7 +215,7 @@ class MonthView(AccountsViewMixin, TemplateView):
         return date_filter(self.month, 'F Y')
 
     def get_outstanding_invoices(self):
-        next_month = date(self.month.year, self.month.month + 1, 1)
+        next_month = self.month + relativedelta.relativedelta(months=1)
         return models.Invoice.objects.filter(
             Q(invoice_date__lt=next_month),
             Q(payment_date__isnull=True) | Q(payment_date__gte=next_month),

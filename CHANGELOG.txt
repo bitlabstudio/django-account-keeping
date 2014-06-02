@@ -1,5 +1,7 @@
 === ongoing ===
 
+- Bugfix: next_month calculation was faulty
+
 === 0.1.4 ===
 
 - No changes... PyPi doesn't see 0.1.3, WTF?
