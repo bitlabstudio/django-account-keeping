@@ -1,5 +1,7 @@
 === ongoing ===
 
+- Added filters to admins
+
 === 0.1.2 ===
 
 - Bugfix: Filter for outstanding invoices was wrong

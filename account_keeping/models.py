@@ -103,12 +103,18 @@ class Invoice(AmountMixin, models.Model):
 class Payee(models.Model):
     name = models.CharField(max_length=256)
 
+    class Meta:
+        ordering = ['name', ]
+
     def __unicode__(self):
         return self.name
 
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
+
+    class Meta:
+        ordering = ['name', ]
 
     def __unicode__(self):
         return self.name
