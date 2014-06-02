@@ -1,5 +1,5 @@
 {% extends "account_keeping/base.html" %}
-{% load account_keeping_tags humanize i18n libs_tags %}
+{% load account_keeping_tags humanize i18n libs_tags tz %}
 
 {% block main %}
 <div class="container">
@@ -25,7 +25,9 @@
         <tbody>
             {% for month in months %}
                 <tr>
-                    <td>{{ month }}</td>
+                    {% localtime off %}
+                    <td>{{ month|date:"M" }}</td>
+                    {% endlocaltime %}
                     <td>{% call income_total "get" month as income_total_value %}{{ income_total_value|currency }}</td>
                     <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value|currency }}</td>
                     <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value|currency }}</td>

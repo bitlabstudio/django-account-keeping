@@ -1,6 +1,7 @@
 === ongoing ===
 
 - Added unicode method to CurrencyRate model
+- Rendering months with localtime off on year_view.html
 
 === 0.1.1 ===
 
