@@ -1,5 +1,6 @@
 === ongoing ===
 
+- Bugfix: Filter for outstanding invoices was wrong
 - Added unicode method to CurrencyRate model
 - Rendering months with localtime off on year_view.html
 

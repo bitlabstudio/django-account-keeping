@@ -122,7 +122,7 @@ class AccountsViewMixin(object):
                 outstanding_income_gross_sum * rate
 
             outstanding_amount_gross_sum_base = \
-                outstanding_income_gross_sum - outstanding_expenses_gross_sum
+                outstanding_income_gross_sum_base - outstanding_expenses_gross_sum_base
 
             outstanding_ccy_totals[currency] = {
                 'expenses_gross': outstanding_expenses_gross_sum_base,
@@ -217,7 +217,7 @@ class MonthView(AccountsViewMixin, TemplateView):
     def get_outstanding_invoices(self):
         next_month = date(self.month.year, self.month.month + 1, 1)
         return models.Invoice.objects.filter(
-            Q(invoice_date__lte=self.month),
+            Q(invoice_date__lt=next_month),
             Q(payment_date__isnull=True) | Q(payment_date__gte=next_month),
         )
 
