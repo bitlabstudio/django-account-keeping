@@ -291,10 +291,12 @@ class YearOverviewView(TemplateView):
                     Sum('amount_gross')).order_by('currency', 'month')
 
         months = []
+        for i in range(1, 13):
+            months.append(date(self.year, i, 1))
+
         income_total = {}
         for row in qs_income:
-            if row['month'] not in months:
-                months.append(row['month'])
+            row['month'] = (row['month']).date()
             if row['month'] not in income_total:
                 income_total[row['month']] = 0
             income_total[row['month']] += row['amount_gross__sum']
@@ -323,6 +325,7 @@ class YearOverviewView(TemplateView):
                     Sum('amount_gross')).order_by('currency', 'month')
 
         for row in qs_expenses:
+            row['month'] = row['month'].date()
             row['amount_gross__sum'] = \
                 row['amount_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
@@ -335,7 +338,11 @@ class YearOverviewView(TemplateView):
 
         profit_total = {}
         for month in months:
-            profit_total[month] = income_total[month] - expenses_total[month]
+            try:
+                profit_total[month] = \
+                    income_total[month] - expenses_total[month]
+            except KeyError:
+                pass
 
         truncate_invoice_date = connection.ops.date_trunc_sql(
             'month', 'invoice_date')
@@ -352,6 +359,7 @@ class YearOverviewView(TemplateView):
                     Sum('amount_gross')).order_by('currency', 'month')
 
         for row in qs_new:
+            row['month'] = row['month'].date()
             row['amount_gross__sum'] = \
                 row['amount_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
@@ -383,6 +391,7 @@ class YearOverviewView(TemplateView):
                         'month', 'currency').annotate(
                             Sum('amount_gross')).order_by('currency', 'month')
             for row in qs_outstanding_month:
+                row['month'] = row['month'].date()
                 row['amount_gross__sum'] = \
                     row['amount_gross__sum'] \
                     * month_rates[row['month']][row['currency']]
@@ -412,44 +421,68 @@ class YearOverviewView(TemplateView):
                 balance_total[month] += qs_balance['value_gross__sum']
 
         equity_total = {}
-        for month in months:
-            equity_total[month] = \
-                balance_total[month] + outstanding_total[month]
-
         income_total_total = 0
         for month in months:
-            income_total_total += income_total[month]
-        income_average = income_total_total / len(months)
+            try:
+                equity_total[month] = \
+                    balance_total[month] + outstanding_total[month]
+            except KeyError:
+                break
+
+        for month in months:
+            try:
+                income_total_total += income_total[month]
+            except KeyError:
+                break
+        income_average = income_total_total / len(income_total)
 
         expenses_total_total = 0
         for month in months:
-            expenses_total_total += expenses_total[month]
-        expenses_average = expenses_total_total / len(months)
+            try:
+                expenses_total_total += expenses_total[month]
+            except KeyError:
+                break
+        expenses_average = expenses_total_total / len(expenses_total)
 
         profit_total_total = 0
         for month in months:
-            profit_total_total += profit_total[month]
-        profit_average = profit_total_total / len(months)
+            try:
+                profit_total_total += profit_total[month]
+            except KeyError:
+                break
+        profit_average = profit_total_total / len(profit_total)
 
         new_total_total = 0
         for month in months:
-            new_total_total += new_total[month]
-        new_average = new_total_total / len(months)
+            try:
+                new_total_total += new_total[month]
+            except KeyError:
+                break
+        new_average = new_total_total / len(new_total)
 
         outstanding_total_total = 0
         for month in months:
-            outstanding_total_total += outstanding_total[month]
-        outstanding_average = outstanding_total_total / len(months)
+            try:
+                outstanding_total_total += outstanding_total[month]
+            except KeyError:
+                break
+        outstanding_average = outstanding_total_total / len(outstanding_total)
 
         balance_total_total = 0
         for month in months:
-            balance_total_total += balance_total[month]
-        balance_average = balance_total_total / len(months)
+            try:
+                balance_total_total += balance_total[month]
+            except KeyError:
+                break
+        balance_average = balance_total_total / len(balance_total)
 
         equity_total_total = 0
         for month in months:
-            equity_total_total += equity_total[month]
-        equity_average = equity_total_total / len(months)
+            try:
+                equity_total_total += equity_total[month]
+            except KeyError:
+                break
+        equity_average = equity_total_total / len(equity_total)
 
         ctx.update({
             'year': self.year,

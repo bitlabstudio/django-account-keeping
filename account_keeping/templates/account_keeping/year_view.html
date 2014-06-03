@@ -28,13 +28,13 @@
                     {% localtime off %}
                     <td>{{ month|date:"M" }}</td>
                     {% endlocaltime %}
-                    <td>{% call income_total "get" month as income_total_value %}{{ income_total_value|currency }}</td>
-                    <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value|currency }}</td>
-                    <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value|currency }}</td>
-                    <td>{% call new_total "get" month as new_total_value %}{{ new_total_value|currency }}</td>
-                    <td>{% call outstanding_total "get" month as outstanding_total_value %}{{ outstanding_total_value|currency }}</td>
-                    <td>{% call balance_total "get" month as balance_total_value %}{{ balance_total_value|currency }}</td>
-                    <td>{% call equity_total "get" month as equity_total_value %}{{ equity_total_value|currency }}</td>
+                    <td>{% call income_total "get" month as income_total_value %}{{ income_total_value|default:0|currency }}</td>
+                    <td>{% call expenses_total "get" month as expenses_total_value %}{{ expenses_total_value|default:0|currency }}</td>
+                    <td>{% call profit_total "get" month as profit_total_value %}{{ profit_total_value|default:0|currency }}</td>
+                    <td>{% call new_total "get" month as new_total_value %}{{ new_total_value|default:0|currency }}</td>
+                    <td>{% call outstanding_total "get" month as outstanding_total_value %}{{ outstanding_total_value|default:0|currency }}</td>
+                    <td>{% call balance_total "get" month as balance_total_value %}{{ balance_total_value|default:0|currency }}</td>
+                    <td>{% call equity_total "get" month as equity_total_value %}{{ equity_total_value|default:0|currency }}</td>
                 </tr>
             {% endfor %}
             <tr>
