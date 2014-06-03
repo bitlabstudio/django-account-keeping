@@ -3,6 +3,7 @@
 - Bugfix: next_month calculation was faulty
 - Bugfix: Making timezone aware row values naive
 - Showing whole year on year view, even future months
+- Added description column to invoice
 
 === 0.1.4 ===
 

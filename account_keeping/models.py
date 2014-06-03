@@ -78,6 +78,7 @@ class Invoice(AmountMixin, models.Model):
     invoice_type = models.CharField(max_length=1, choices=INVOICE_TYPE_CHOICES)
     invoice_date = models.DateField()
     invoice_number = models.CharField(max_length=256, blank=True)
+    description = models.TextField(blank=True)
     currency = models.ForeignKey(Currency, related_name='invoices')
     amount_net = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)

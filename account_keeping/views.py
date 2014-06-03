@@ -219,7 +219,7 @@ class MonthView(AccountsViewMixin, TemplateView):
         return models.Invoice.objects.filter(
             Q(invoice_date__lt=next_month),
             Q(payment_date__isnull=True) | Q(payment_date__gte=next_month),
-        )
+        ).prefetch_related('transactions')
 
     def get_rate(self, currency):
         return models.CurrencyRate.objects.get(
