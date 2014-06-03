@@ -26,6 +26,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         'amount_gross', 'payment_date']
     list_filter = ['invoice_type', 'currency', ]
     date_hierarchy = 'invoice_date'
+    search_fields = ['invoice_number', 'description']
 admin.site.register(models.Invoice, InvoiceAdmin)
 
 
