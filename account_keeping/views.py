@@ -184,6 +184,10 @@ class IndexView(TemplateView):
     """View that shows the main menu for the accounting app."""
     template_name = 'account_keeping/index_view.html'
 
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(IndexView, self).dispatch(request, *args, **kwargs)
+
 
 class MonthView(AccountsViewMixin, TemplateView):
     @method_decorator(login_required)
