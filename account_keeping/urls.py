@@ -6,6 +6,7 @@ from . import views
 
 urlpatterns = patterns(
     '',
+
     url(r'all/$',
         views.AllTimeView.as_view(),
         name='account_keeping_all'),
@@ -17,4 +18,8 @@ urlpatterns = patterns(
     url(r'(?P<year>\d+)/$',
         views.YearOverviewView.as_view(),
         name='account_keeping_year'),
+
+    url(r'/$',
+        views.IndexView.as_view(),
+        name='account_keeping_index'),
 )
