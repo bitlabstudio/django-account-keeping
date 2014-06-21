@@ -19,7 +19,7 @@ urlpatterns = patterns(
         views.YearOverviewView.as_view(),
         name='account_keeping_year'),
 
-    url(r'/$',
+    url(r'$',
         views.IndexView.as_view(),
         name='account_keeping_index'),
 )
