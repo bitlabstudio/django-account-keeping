@@ -121,6 +121,20 @@ class Category(models.Model):
         return self.name
 
 
+class TransactionManager(models.Manager):
+    """Manager for the ``Transaction`` model."""
+    def current_balance(self, account):
+        """
+        Returns the total current balance for the given account.
+
+        :param account: An ``Account`` instance.
+
+        """
+        qs = Transaction.objects.filter(account=account, parent__isnull=True)
+        qs = qs.aggregate(models.Sum('value_gross'))
+        return qs['value_gross__sum'] + account.initial_amount
+
+
 class Transaction(AmountMixin, models.Model):
     TRANSACTION_TYPES = {
         'withdrawal': 'w',
@@ -157,6 +171,8 @@ class Transaction(AmountMixin, models.Model):
         max_digits=10, decimal_places=2, default=0)
     value_gross = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
+
+    objects = TransactionManager()
 
     class Meta:
         ordering = ['transaction_date', ]

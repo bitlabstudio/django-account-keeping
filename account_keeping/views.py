@@ -188,6 +188,19 @@ class IndexView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         return super(IndexView, self).dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        ctx = super(IndexView, self).get_context_data(**kwargs)
+        accounts = models.Account.objects.all()
+        accounts_stats = {}
+        for account in accounts:
+            accounts_stats[account] = {}
+            accounts_stats[account]['balance_gross'] = \
+                models.Transaction.objects.current_balance(account)
+        ctx.update({
+            'accounts_stats': accounts_stats,
+        })
+        return ctx
+
 
 class MonthView(AccountsViewMixin, TemplateView):
     @method_decorator(login_required)
