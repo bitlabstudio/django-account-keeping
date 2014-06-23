@@ -81,10 +81,10 @@ class Invoice(AmountMixin, models.Model):
     description = models.TextField(blank=True)
     currency = models.ForeignKey(Currency, related_name='invoices')
     amount_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10, decimal_places=2, default=0, blank=True)
     vat = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     amount_gross = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10, decimal_places=2, default=0, blank=True)
     payment_date = models.DateField(blank=True, null=True)
     pdf = models.FileField(upload_to='invoice_files', blank=True, null=True)
 
