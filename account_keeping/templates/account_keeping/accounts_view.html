@@ -19,7 +19,7 @@
 
     <div class="tab-content">
         {% for value_dict in account_transactions %}
-        <div class="tab-pane" id="{{ value_dict.account.slug }}">
+            <div class="tab-pane" id="{{ value_dict.account.slug }}">
                 <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
                 <table class="table table-hover table-condensed small">
                     <thead>
@@ -90,6 +90,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <a class="btn btn-primary" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a>
             </div>
         {% endfor %}
 
@@ -192,6 +193,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <a class="btn btn-primary" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
         </div>
     </div>
 </div>
