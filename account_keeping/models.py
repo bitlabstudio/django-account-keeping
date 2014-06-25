@@ -64,6 +64,12 @@ class Account(models.Model):
         return self.name
 
 
+class InvoiceManager(models.Manager):
+    """Custom manager for the ``Invoice`` model."""
+    def get_without_pdf(self):
+        return Invoice.objects.filter(pdf='')
+
+
 class Invoice(AmountMixin, models.Model):
     INVOICE_TYPES = {
         'withdrawal': 'w',
@@ -87,6 +93,8 @@ class Invoice(AmountMixin, models.Model):
         max_digits=10, decimal_places=2, default=0, blank=True)
     payment_date = models.DateField(blank=True, null=True)
     pdf = models.FileField(upload_to='invoice_files', blank=True, null=True)
+
+    objects = InvoiceManager()
 
     class Meta:
         ordering = ['invoice_date', ]

@@ -196,8 +196,13 @@ class IndexView(TemplateView):
             accounts_stats[account] = {}
             accounts_stats[account]['balance_gross'] = \
                 models.Transaction.objects.current_balance(account)
+
+        invoices_without_pdf = \
+            models.Invoice.objects.get_without_pdf()
+
         ctx.update({
             'accounts_stats': accounts_stats,
+            'invoices_without_pdf': invoices_without_pdf,
         })
         return ctx
 

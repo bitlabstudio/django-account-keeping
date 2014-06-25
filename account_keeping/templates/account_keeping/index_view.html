@@ -4,10 +4,14 @@
 {% block main %}
 <div class="container">
     <h1>{% trans "Welcome to Django Account Keeping" %}</h1>
-    <p>Click at one of the main navigation items to start. Soon we will show the most important current stats on this page.</p>
+    <p>{% trans "Click at one of the main navigation items to start. Soon we will show the most important current stats on this page." %}</p>
     {% for account, stats in accounts_stats.items %}
         <h2>{{ account.name }} ({{ account.currency }})</h2>
         <p class="well"><strong>Current balance:</strong> {{ stats.balance_gross }}</p>
     {% endfor %}
+    {% if invoices_without_pdf %}
+        <h2>{% trans "Invoices without PDF" %}</h2>
+        {% include "account_keeping/partials/invoices_table.html" with invoices=invoices_without_pdf %}
+    {% endif %}
 </div>
 {% endblock %}
