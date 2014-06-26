@@ -10,6 +10,7 @@
             <th>{% trans "Amount (net)" %}</th>
             <th>{% trans "VAT" %}</th>
             <th>{% trans "Amount (gross)" %}</th>
+            <th>{% trans "Transactions" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -23,6 +24,12 @@
                 <td>{{ invoice.amount_net|currency }}</td>
                 <td>{{ invoice.vat }}</td>
                 <td>{{ invoice.amount_gross|currency }}</td>
+                <td>
+                    {% for transaction in invoice.transactions.all %}
+                        <a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a>
+                        {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
             </tr>
         {% endfor %}
     </tbody>

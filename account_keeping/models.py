@@ -67,7 +67,9 @@ class Account(models.Model):
 class InvoiceManager(models.Manager):
     """Custom manager for the ``Invoice`` model."""
     def get_without_pdf(self):
-        return Invoice.objects.filter(pdf='')
+        qs = Invoice.objects.filter(pdf='')
+        qs = qs.prefetch_related('transactions', )
+        return qs
 
 
 class Invoice(AmountMixin, models.Model):
