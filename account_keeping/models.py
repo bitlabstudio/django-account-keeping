@@ -144,6 +144,19 @@ class TransactionManager(models.Manager):
         qs = qs.aggregate(models.Sum('value_gross'))
         return qs['value_gross__sum'] + account.initial_amount
 
+    def get_without_invoice(self):
+        """
+        Returns transactions that don't have an invoice.
+
+        We filter out transactions that have children, because those
+        transactions never have invoices - their children are the ones that
+        would each have one invoice.
+
+        """
+        qs = Transaction.objects.filter(
+            children__isnull=True, invoice__isnull=True)
+        return qs
+
 
 class Transaction(AmountMixin, models.Model):
     TRANSACTION_TYPES = {

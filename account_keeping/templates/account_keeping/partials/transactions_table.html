@@ -1,0 +1,39 @@
+{% load account_keeping_tags humanize i18n %}
+<table class="table table-hover table-condensed small">
+    <thead>
+        <tr>
+            <th>{% trans "ID" %}</th>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Invoice" %}</th>
+            <th>{% trans "Payee" %}</th>
+            <th>{% trans "Category" %}</th>
+            <th>{% trans "Amount (net)" %}</th>
+            <th>{% trans "VAT" %}</th>
+            <th>{% trans "Amount (gross)" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+            <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
+                <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
+                <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
+                <td>{{ transaction.description|default:"n/a" }}</td>
+                <td>
+                    {% if transaction.invoice %}
+                        <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number|default:transaction.invoice.pk }}</a>
+                    {% elif transaction.invoice_number %}
+                        {{ transaction.invoice_number }}
+                    {% else %}
+                        {% trans "n/a" %}
+                    {% endif %}
+                </td>
+                <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
+                <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
+                <td>{{ transaction.amount_net|currency }}</td>
+                <td>{{ transaction.vat }}</td>
+                <td>{{ transaction.amount_gross|currency }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

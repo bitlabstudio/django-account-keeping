@@ -200,9 +200,14 @@ class IndexView(TemplateView):
         invoices_without_pdf = \
             models.Invoice.objects.get_without_pdf()
 
+        transactions_without_invoice = \
+            models.Transaction.objects.get_without_invoice()
+
         ctx.update({
             'accounts_stats': accounts_stats,
             'invoices_without_pdf': invoices_without_pdf,
+            'transactions_without_invoice': transactions_without_invoice,
+            'transaction_types': models.Transaction.TRANSACTION_TYPES,
         })
         return ctx
 

@@ -9,6 +9,12 @@
         <h2>{{ account.name }} ({{ account.currency }})</h2>
         <p class="well"><strong>Current balance:</strong> {{ stats.balance_gross }}</p>
     {% endfor %}
+
+    {% if transactions_without_invoice %}
+        <h2>{% trans "Transactions without invoice" %}</h2>
+        {% include "account_keeping/partials/transactions_table.html" with transactions=transactions_without_invoice %}
+    {% endif %}
+
     {% if invoices_without_pdf %}
         <h2>{% trans "Invoices without PDF" %}</h2>
         {% include "account_keeping/partials/invoices_table.html" with invoices=invoices_without_pdf %}
