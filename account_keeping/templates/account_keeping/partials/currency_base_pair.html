@@ -1,0 +1,5 @@
+{% load account_keeping_tags %}
+{{ amount|currency }}
+{% if currency.iso_code != base_currency.iso_code %}
+    ({{ base_amount|currency }} {{ base_currency.iso_code }})
+{% endif %}

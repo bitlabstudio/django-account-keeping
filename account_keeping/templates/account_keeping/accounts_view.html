@@ -133,7 +133,7 @@
                 </tbody>
             </table>
 
-            <h2>{% trans "Outstanding total" %} ({{ base_currency.iso_code }})</h2>
+            <h2>{% trans "Outstanding total" %}</h2>
 
             <table class="table table-hover table-condensed small">
                 <thead>
@@ -148,16 +148,22 @@
                     {% for currency, ccy_totals in outstanding_ccy_totals.items %}
                         <tr>
                             <th>{{ currency.iso_code }}</th>
-                            <th>{{ ccy_totals.expenses_gross|currency }}</th>
-                            <th>{{ ccy_totals.income_gross|currency }}</th>
-                            <th>{{ ccy_totals.amount_gross|currency }}</th>
+                            <th>
+                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.expenses_gross base_amount=ccy_totals.expenses_gross_base %}
+                            </th>
+                            <th>
+                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.income_gross base_amount=ccy_totals.income_gross_base %}
+                            </th>
+                            <th>
+                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.profit_gross base_amount=ccy_totals.profit_gross_base %}
+                            </th>
                         </tr>
                     {% endfor %}
                     <tr>
-                        <th><strong>{% trans "Total" %}</strong></th>
+                        <th><strong>{% trans "Total" %} ({{ base_currency.iso_code }})</strong></th>
                         <th>{{ totals.outstanding_expenses_gross|currency }}</th>
                         <th>{{ totals.outstanding_income_gross|currency }}</th>
-                        <th>{{ totals.outstanding_amount_gross|currency }}</th>
+                        <th>{{ totals.outstanding_profit_gross|currency }}</th>
                     </tr>
                 </tbody>
             </table>

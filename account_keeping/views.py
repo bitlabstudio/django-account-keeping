@@ -100,10 +100,14 @@ class AccountsViewMixin(object):
                 'income_gross_sum_base': income_gross_sum_base,
             })
 
+        # We want to show a table: For each currency, show outstanding
+        # income and expenses and profit. We also want a Total column. Of
+        # course we need to convert all currency values to a base currency so
+        # that we can create a sum for the total column.
         qs = self.get_outstanding_invoices()
-        outstanding_expenses_gross_sum_base = 0
-        outstanding_income_gross_sum_base = 0
-        outstanding_amount_gross_sum_base = 0
+        outstanding_expenses_gross_total_base = 0
+        outstanding_income_gross_total_base = 0
+        outstanding_profit_gross_total_base = 0
         outstanding_ccy_totals = {}
         for currency in models.Currency.objects.all():
             rate = 1
@@ -112,28 +116,41 @@ class AccountsViewMixin(object):
             outstanding_expenses_gross_sum = qs.filter(
                 invoice_type=WITHDRAWAL, currency=currency).aggregate(
                     Sum('amount_gross'))['amount_gross__sum'] or 0
-            outstanding_expenses_gross_sum_base += \
+            outstanding_expenses_gross_sum_base = \
                 outstanding_expenses_gross_sum * rate
+            outstanding_expenses_gross_total_base += \
+                outstanding_expenses_gross_sum_base
 
             outstanding_income_gross_sum = qs.filter(
                 invoice_type=DEPOSIT, currency=currency).aggregate(
                     Sum('amount_gross'))['amount_gross__sum'] or 0
-            outstanding_income_gross_sum_base += \
+            outstanding_income_gross_sum_base = \
                 outstanding_income_gross_sum * rate
+            outstanding_income_gross_total_base += \
+                outstanding_income_gross_sum_base
 
-            outstanding_amount_gross_sum_base = \
-                outstanding_income_gross_sum_base - outstanding_expenses_gross_sum_base
+            outstanding_profit_gross_sum = \
+                outstanding_income_gross_sum \
+                - outstanding_expenses_gross_sum
+            outstanding_profit_gross_sum_base = \
+                outstanding_income_gross_sum_base \
+                - outstanding_expenses_gross_sum_base
+            outstanding_profit_gross_total_base += \
+                outstanding_profit_gross_sum_base
 
             outstanding_ccy_totals[currency] = {
-                'expenses_gross': outstanding_expenses_gross_sum_base,
-                'income_gross': outstanding_income_gross_sum_base,
-                'amount_gross': outstanding_amount_gross_sum_base,
+                'expenses_gross': outstanding_expenses_gross_sum,
+                'expenses_gross_base': outstanding_expenses_gross_sum_base,
+                'income_gross': outstanding_income_gross_sum,
+                'income_gross_base': outstanding_income_gross_sum_base,
+                'profit_gross': outstanding_profit_gross_sum,
+                'profit_gross_base': outstanding_profit_gross_sum_base,
             }
 
         totals['outstanding_expenses_gross'] = \
-            outstanding_expenses_gross_sum_base
-        totals['outstanding_income_gross'] = outstanding_income_gross_sum_base
-        totals['outstanding_amount_gross'] = outstanding_amount_gross_sum_base
+            outstanding_expenses_gross_total_base
+        totals['outstanding_income_gross'] = outstanding_income_gross_total_base
+        totals['outstanding_profit_gross'] = outstanding_profit_gross_total_base
 
         ctx.update({
             'view_name': self.get_view_name(),
