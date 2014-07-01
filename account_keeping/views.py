@@ -3,7 +3,7 @@ from datetime import date
 
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.db.models import F, Q, Sum
+from django.db.models import Q, Sum
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
@@ -149,8 +149,10 @@ class AccountsViewMixin(object):
 
         totals['outstanding_expenses_gross'] = \
             outstanding_expenses_gross_total_base
-        totals['outstanding_income_gross'] = outstanding_income_gross_total_base
-        totals['outstanding_profit_gross'] = outstanding_profit_gross_total_base
+        totals['outstanding_income_gross'] = \
+            outstanding_income_gross_total_base
+        totals['outstanding_profit_gross'] = \
+            outstanding_profit_gross_total_base
 
         ctx.update({
             'view_name': self.get_view_name(),
@@ -393,6 +395,8 @@ class YearOverviewView(TemplateView):
             except KeyError:
                 pass
 
+        # This adds a new column to the query which only holds the month
+        # of the invoice_date and payment_date
         truncate_invoice_date = connection.ops.date_trunc_sql(
             'month', 'invoice_date')
         truncate_payment_date = connection.ops.date_trunc_sql(
@@ -402,22 +406,22 @@ class YearOverviewView(TemplateView):
                 'month': truncate_invoice_date,
                 'payment_month': truncate_payment_date})
 
-        qs_new = qs_invoices_year.filter(
-            invoice_type=DEPOSIT).values(
-                'month', 'currency').annotate(
-                    Sum('amount_gross')).order_by('currency', 'month')
+        qs_new = qs_invoices_year.filter(invoice_type=DEPOSIT)
+        qs_new = qs_new.values('month', 'currency')
+        qs_new = qs_new.annotate(Sum('value_gross'))
+        qs_new = qs_new.order_by('currency', 'month')
 
         for row in qs_new:
             row['month'] = row['month'].date()
-            row['amount_gross__sum'] = \
-                row['amount_gross__sum'] \
+            row['value_gross__sum'] = \
+                row['value_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
 
         new_total = {}
         for row in qs_new:
             if row['month'] not in new_total:
                 new_total[row['month']] = 0
-            new_total[row['month']] += row['amount_gross__sum']
+            new_total[row['month']] += row['value_gross__sum']
         for month in months:
             if month not in new_total:
                 new_total[month] = 0
@@ -428,27 +432,29 @@ class YearOverviewView(TemplateView):
             # outstanding as of that month. An invoice sent in February and
             # paid in May would appear as outstanding on the months February,
             # March, April.
-            start = date(1900, 1, 1)
-            end = month + relativedelta.relativedelta(
-                months=1, seconds=-1)
-            qs_outstanding_month = qs_invoices_year.filter(
-                invoice_type=DEPOSIT,
-                invoice_date__range=(start, end),
-                payment_date__gt=F('invoice_date')).exclude(
-                    payment_date__year=self.year,
-                    payment_date__month=month.month).values(
-                        'month', 'currency').annotate(
-                            Sum('amount_gross')).order_by('currency', 'month')
+            next_month = month + relativedelta.relativedelta(months=1)
+
+            # TODO: Centralise this, we have this select in
+            # get_outstanding_invoices already
+            qs = models.Invoice.objects.filter(
+                Q(invoice_type=DEPOSIT),
+                Q(invoice_date__lt=next_month),
+                Q(payment_date__isnull=True) | Q(payment_date__gte=next_month))
+            qs = qs.prefetch_related(
+                'transactions')
+            qs = qs.extra({'month': truncate_invoice_date, })
+            qs = qs.values('currency')
+            qs = qs.annotate(Sum('amount_gross'))
+            qs_outstanding_month = qs.order_by('currency')
+
             for row in qs_outstanding_month:
-                row['month'] = row['month'].date()
                 row['amount_gross__sum'] = \
                     row['amount_gross__sum'] \
-                    * month_rates[row['month']][row['currency']]
-            try:
-                outstanding_total[month] = \
-                    qs_outstanding_month[0]['amount_gross__sum']
-            except IndexError:
-                outstanding_total[month] = 0
+                    * month_rates[month][row['currency']]
+                try:
+                    outstanding_total[month] += row['amount_gross__sum']
+                except KeyError:
+                    outstanding_total[month] = row['amount_gross__sum']
 
         balance_total = {}
         for month in months:

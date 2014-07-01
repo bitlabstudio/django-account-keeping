@@ -30,6 +30,14 @@ class AmountMixin(object):
             else:
                 self.amount_net = self.amount_gross
 
+    def set_value_fields(self, type_field_name):
+        multiplier = 1
+        type_ = getattr(self, type_field_name)
+        if type_ == Transaction.TRANSACTION_TYPES['withdrawal']:
+            multiplier = -1
+        self.value_net = self.amount_net * multiplier
+        self.value_gross = self.amount_gross * multiplier
+
 
 class Currency(models.Model):
     name = models.CharField(max_length=64)
@@ -93,6 +101,10 @@ class Invoice(AmountMixin, models.Model):
     vat = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     amount_gross = models.DecimalField(
         max_digits=10, decimal_places=2, default=0, blank=True)
+    value_net = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    value_gross = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
     payment_date = models.DateField(blank=True, null=True)
     pdf = models.FileField(upload_to='invoice_files', blank=True, null=True)
 
@@ -108,6 +120,7 @@ class Invoice(AmountMixin, models.Model):
 
     def save(self, *args, **kwargs):
         self.set_amount_fields()
+        self.set_value_fields('invoice_type')
         return super(Invoice, self).save(*args, **kwargs)
 
 
@@ -209,10 +222,5 @@ class Transaction(AmountMixin, models.Model):
 
     def save(self, *args, **kwargs):
         self.set_amount_fields()
-        multiplier = 1
-        if self.transaction_type == self.TRANSACTION_TYPES['withdrawal']:
-            multiplier = -1
-        self.value_net = self.amount_net * multiplier
-        self.value_gross = self.amount_gross * multiplier
-
+        self.set_value_fields('transaction_type')
         return super(Transaction, self).save(*args, **kwargs)
