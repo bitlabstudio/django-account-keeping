@@ -1,7 +1,7 @@
 import locale
-from datetime import date
 
 from django import template
+from django.utils.timezone import datetime
 
 locale.setlocale(locale.LC_ALL, '')
 register = template.Library()
@@ -14,9 +14,9 @@ def currency(value):
 
 @register.assignment_tag()
 def get_current_year():
-    return date.today().year
+    return datetime.now().year
 
 
 @register.assignment_tag()
 def get_current_month():
-    return date.today().month
+    return datetime.now().month
