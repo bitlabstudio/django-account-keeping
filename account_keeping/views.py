@@ -11,6 +11,7 @@ from django.views.generic import TemplateView
 from dateutil import relativedelta
 
 from . import models
+from . import utils
 
 
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
@@ -324,6 +325,7 @@ class YearOverviewView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(YearOverviewView, self).get_context_data(**kwargs)
+        past_months_of_year = utils.get_months_of_year(self.year)
         last_year = self.year - 1
         next_year = self.year + 1
         if next_year > date.today().year:
@@ -432,6 +434,11 @@ class YearOverviewView(TemplateView):
             # outstanding as of that month. An invoice sent in February and
             # paid in May would appear as outstanding on the months February,
             # March, April.
+            if month.month > past_months_of_year:
+                # In the current year, we don't want to save values for future
+                # months
+                break
+
             next_month = month + relativedelta.relativedelta(months=1)
 
             # TODO: Centralise this, we have this select in
@@ -458,6 +465,11 @@ class YearOverviewView(TemplateView):
 
         balance_total = {}
         for month in months:
+            if month.month > past_months_of_year:
+                # In the current year, we don't want to save values for future
+                # months
+                break
+
             month_end = month + relativedelta.relativedelta(
                 months=1, seconds=-1)
             for account in models.Account.objects.all():
@@ -489,7 +501,7 @@ class YearOverviewView(TemplateView):
                 income_total_total += income_total[month]
             except KeyError:
                 break
-        income_average = income_total_total / len(income_total)
+        income_average = income_total_total / past_months_of_year
 
         expenses_total_total = 0
         for month in months:
@@ -497,7 +509,7 @@ class YearOverviewView(TemplateView):
                 expenses_total_total += expenses_total[month]
             except KeyError:
                 break
-        expenses_average = expenses_total_total / len(expenses_total)
+        expenses_average = expenses_total_total / past_months_of_year
 
         profit_total_total = 0
         for month in months:
@@ -505,7 +517,7 @@ class YearOverviewView(TemplateView):
                 profit_total_total += profit_total[month]
             except KeyError:
                 break
-        profit_average = profit_total_total / len(profit_total)
+        profit_average = profit_total_total / past_months_of_year
 
         new_total_total = 0
         for month in months:
@@ -513,7 +525,7 @@ class YearOverviewView(TemplateView):
                 new_total_total += new_total[month]
             except KeyError:
                 break
-        new_average = new_total_total / len(new_total)
+        new_average = new_total_total / past_months_of_year
 
         outstanding_total_total = 0
         for month in months:
@@ -521,7 +533,7 @@ class YearOverviewView(TemplateView):
                 outstanding_total_total += outstanding_total[month]
             except KeyError:
                 break
-        outstanding_average = outstanding_total_total / len(outstanding_total)
+        outstanding_average = outstanding_total_total / past_months_of_year
 
         balance_total_total = 0
         for month in months:
@@ -529,7 +541,7 @@ class YearOverviewView(TemplateView):
                 balance_total_total += balance_total[month]
             except KeyError:
                 break
-        balance_average = balance_total_total / len(balance_total)
+        balance_average = balance_total_total / past_months_of_year
 
         equity_total_total = 0
         for month in months:
@@ -537,7 +549,7 @@ class YearOverviewView(TemplateView):
                 equity_total_total += equity_total[month]
             except KeyError:
                 break
-        equity_average = equity_total_total / len(equity_total)
+        equity_average = equity_total_total / past_months_of_year
 
         ctx.update({
             'year': self.year,
