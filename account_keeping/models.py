@@ -211,7 +211,7 @@ class Transaction(AmountMixin, models.Model):
     objects = TransactionManager()
 
     class Meta:
-        ordering = ['transaction_date', ]
+        ordering = ['-transaction_date', ]
 
     def __unicode__(self):
         if self.invoice_number:

@@ -255,10 +255,11 @@ class MonthView(AccountsViewMixin, TemplateView):
         return ctx
 
     def get_account_balance(self, account):
+        next_month = self.month + relativedelta.relativedelta(months=1)
         account_balance = models.Transaction.objects.filter(
             account=account,
             parent__isnull=True,
-            transaction_date__lt=self.month,
+            transaction_date__lt=next_month,
         ).aggregate(Sum('value_gross'))['value_gross__sum'] or 0
         account_balance = account_balance + account.initial_amount
         return account_balance
