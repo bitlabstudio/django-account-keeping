@@ -30,7 +30,14 @@ class AccountsViewMixin(object):
         Returns the balance up until the last transaction BEFORE this view.
 
         """
-        raise NotImplementedError('Method not implemented')  # pragma: no cover
+        next_month = self.month + relativedelta.relativedelta(months=1)
+        account_balance = models.Transaction.objects.filter(
+            account=account,
+            parent__isnull=True,
+            transaction_date__lt=next_month,
+        ).aggregate(Sum('value_gross'))['value_gross__sum'] or 0
+        account_balance = account_balance + account.initial_amount
+        return account_balance
 
     def get_context_data(self, **kwargs):
         ctx = super(AccountsViewMixin, self).get_context_data(**kwargs)
@@ -254,16 +261,6 @@ class MonthView(AccountsViewMixin, TemplateView):
         })
         return ctx
 
-    def get_account_balance(self, account):
-        next_month = self.month + relativedelta.relativedelta(months=1)
-        account_balance = models.Transaction.objects.filter(
-            account=account,
-            parent__isnull=True,
-            transaction_date__lt=next_month,
-        ).aggregate(Sum('value_gross'))['value_gross__sum'] or 0
-        account_balance = account_balance + account.initial_amount
-        return account_balance
-
     def get_view_name(self):
         return date_filter(self.month, 'F Y')
 
@@ -292,10 +289,8 @@ class MonthView(AccountsViewMixin, TemplateView):
 class AllTimeView(AccountsViewMixin, TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        self.month = date(date.today().year, date.today().month, 1)
         return super(AllTimeView, self).dispatch(request, *args, **kwargs)
-
-    def get_account_balance(self, account):
-        return account.initial_amount
 
     def get_view_name(self):
         return 'All Time Overview'
