@@ -111,7 +111,7 @@ class Invoice(AmountMixin, models.Model):
     objects = InvoiceManager()
 
     class Meta:
-        ordering = ['invoice_date', ]
+        ordering = ['-invoice_date', ]
 
     def __unicode__(self):
         if self.invoice_number:

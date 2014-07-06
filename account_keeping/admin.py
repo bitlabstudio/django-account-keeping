@@ -24,7 +24,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = [
         'invoice_type', 'invoice_date', 'currency', 'amount_net', 'vat',
         'amount_gross', 'payment_date']
-    list_filter = ['invoice_type', 'currency', ]
+    list_filter = ['invoice_type', 'currency', 'payment_date']
     date_hierarchy = 'invoice_date'
     search_fields = ['invoice_number', 'description']
 admin.site.register(models.Invoice, InvoiceAdmin)
@@ -44,7 +44,7 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = [
         'transaction_date', 'invoice_number', 'invoice', 'payee', 'category',
         'currency', 'value_net', 'vat', 'value_gross', ]
-    list_filter = ['account', 'payee', 'category', ]
+    list_filter = ['account', 'currency', 'payee', 'category']
     date_hierarchy = 'transaction_date'
     raw_id_fields = ['parent', 'invoice']
     search_fields = [
