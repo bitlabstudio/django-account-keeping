@@ -5,6 +5,7 @@
             <th>{% trans "ID" %}</th>
             <th>{% trans "Date" %}</th>
             <th>{% trans "Invoice number" %}</th>
+            <th>{% trans "PDF" %}</th>
             <th>{% trans "Description" %}</th>
             <th>{% trans "Currency" %}</th>
             <th>{% trans "Amount (net)" %}</th>
@@ -19,6 +20,7 @@
             <td><a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.pk }}</a></td>
                 <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
                 <td>{{ invoice.invoice_number|default:"n/a" }}</td>
+                <td>{% if invoice.pdf %}<a href="{{ MEDIA_URL }}{{ invoice.pdf }}"><span class="glyphicon glyphicon-file"></span></a>{% else %}n/a{% endif %}</td>
                 <td>{{ invoice.description|default:"n/a" }}</td>
                 <td>{{ invoice.currency.iso_code }}</td>
                 <td>{{ invoice.amount_net|currency }}</td>
