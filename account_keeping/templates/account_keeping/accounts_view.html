@@ -21,7 +21,7 @@
         {% for value_dict in account_transactions %}
             <div class="tab-pane" id="{{ value_dict.account.slug }}">
                 <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
-                <div style="margin:1em 0px;"><a class="btn btn-primary" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a></div>
+                <a class="btn btn-primary btn-above-table" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a>
                 <table class="table table-hover table-condensed small">
                     <thead>
                         <tr>
@@ -172,6 +172,7 @@
 
         <div class="tab-pane" id="outstanding">
             <h2>{% trans "Outstanding invoices" %}</h2>
+            <a class="btn btn-primary btn-above-table" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
             {% include "account_keeping/partials/invoices_table.html" with invoices=outstanding_invoices %}
             <a class="btn btn-primary" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
         </div>
