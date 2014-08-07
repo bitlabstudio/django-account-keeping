@@ -14,11 +14,9 @@
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    {% get_current_year as current_year %}
-                    {% get_current_month as current_month %}
                     <li class="active"><a href="{% url "account_keeping_index" %}">Home</a></li>
-                    <li><a href="{% url "account_keeping_month" year=current_year month=current_month %}">Current month</a></li>
-                    <li><a href="{% url "account_keeping_year" year=current_year %}" >Current year</a></li>
+                    <li><a href="{% url "account_keeping_current_month" %}">Current month</a></li>
+                    <li><a href="{% url "account_keeping_current_year" %}" >Current year</a></li>
                     <li><a href="{% url "account_keeping_all" %}">All time</a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->

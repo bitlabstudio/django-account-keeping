@@ -4,14 +4,17 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.db.models import Q, Sum
+from django.shortcuts import redirect
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
-from django.views.generic import TemplateView
+from django.utils.timezone import now
+from django.views.generic import TemplateView, View
 
 from dateutil import relativedelta
 
 from . import models
 from . import utils
+from .utils import get_date as d
 
 
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
@@ -207,6 +210,46 @@ class AccountsViewMixin(object):
         raise NotImplementedError('Method not implemented')  # pragma: no cover
 
 
+class AllTimeView(AccountsViewMixin, TemplateView):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.month = date(date.today().year, date.today().month, 1)
+        return super(AllTimeView, self).dispatch(request, *args, **kwargs)
+
+    def get_view_name(self):
+        return 'All Time Overview'
+
+    def get_outstanding_invoices(self):
+        return models.Invoice.objects.filter(
+            payment_date__isnull=True
+        )
+
+    def get_rate(self, currency):
+        return models.CurrencyRate.objects.filter(
+            currency=currency).order_by('-year', '-month')[:1][0].rate
+
+    def get_transactions(self, account):
+        return models.Transaction.objects.filter(
+            account=account,
+            parent__isnull=True,
+        )
+
+
+class CurrentMonthRedirectView(View):
+    """Redirects to the ``MonthOverviewView`` for the current month."""
+    def dispatch(self, request, *args, **kwargs):
+        now_ = now()
+        return redirect(
+            'account_keeping_month', year=now_.year, month=now_.month)
+
+
+class CurrentYearRedirectView(View):
+    """Redirects to the ``MonthView`` for the current year."""
+    def dispatch(self, request, *args, **kwargs):
+        now_ = now()
+        return redirect('account_keeping_year', year=now_.year)
+
+
 class IndexView(TemplateView):
     """View that shows the main menu for the accounting app."""
     template_name = 'account_keeping/index_view.html'
@@ -286,31 +329,6 @@ class MonthView(AccountsViewMixin, TemplateView):
         )
 
 
-class AllTimeView(AccountsViewMixin, TemplateView):
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        self.month = date(date.today().year, date.today().month, 1)
-        return super(AllTimeView, self).dispatch(request, *args, **kwargs)
-
-    def get_view_name(self):
-        return 'All Time Overview'
-
-    def get_outstanding_invoices(self):
-        return models.Invoice.objects.filter(
-            payment_date__isnull=True
-        )
-
-    def get_rate(self, currency):
-        return models.CurrencyRate.objects.filter(
-            currency=currency).order_by('-year', '-month')[:1][0].rate
-
-    def get_transactions(self, account):
-        return models.Transaction.objects.filter(
-            account=account,
-            parent__isnull=True,
-        )
-
-
 class YearOverviewView(TemplateView):
     template_name = 'account_keeping/year_view.html'
 
@@ -345,7 +363,7 @@ class YearOverviewView(TemplateView):
 
         income_total = {}
         for row in qs_income:
-            row['month'] = (row['month']).date()
+            row['month'] = d(row['month']).date()
             if row['month'] not in income_total:
                 income_total[row['month']] = 0
             income_total[row['month']] += row['amount_gross__sum']
@@ -374,7 +392,7 @@ class YearOverviewView(TemplateView):
                     Sum('amount_gross')).order_by('currency', 'month')
 
         for row in qs_expenses:
-            row['month'] = row['month'].date()
+            row['month'] = d(row['month']).date()
             row['amount_gross__sum'] = \
                 row['amount_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
@@ -410,7 +428,7 @@ class YearOverviewView(TemplateView):
         qs_new = qs_new.order_by('currency', 'month')
 
         for row in qs_new:
-            row['month'] = row['month'].date()
+            row['month'] = d(row['month']).date()
             row['value_gross__sum'] = \
                 row['value_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
@@ -474,7 +492,12 @@ class YearOverviewView(TemplateView):
                     parent__isnull=True,
                     transaction_date__lte=month_end,
                 ).aggregate(Sum('value_gross'))
-                qs_balance['value_gross__sum'] += account.initial_amount
+                try:
+                    qs_balance['value_gross__sum'] += account.initial_amount
+                except TypeError:
+                    # happens when there are no Transactions for that month
+                    qs_balance['value_gross__sum'] = 0
+                    qs_balance['value_gross__sum'] += account.initial_amount
                 if not account.currency.is_base_currency:
                     qs_balance['value_gross__sum'] = \
                         qs_balance['value_gross__sum'] \

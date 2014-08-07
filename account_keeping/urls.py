@@ -19,6 +19,14 @@ urlpatterns = patterns(
         views.YearOverviewView.as_view(),
         name='account_keeping_year'),
 
+    url(r'current-year/$',
+        views.CurrentYearRedirectView.as_view(),
+        name='account_keeping_current_year'),
+
+    url(r'current-month/$',
+        views.CurrentMonthRedirectView.as_view(),
+        name='account_keeping_current_month'),
+
     url(r'$',
         views.IndexView.as_view(),
         name='account_keeping_index'),

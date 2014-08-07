@@ -1,5 +1,19 @@
 """Utility functions for the account_keeping app."""
-from django.utils.timezone import now
+
+from django.utils.timezone import datetime, now
+
+
+def get_date(value):
+    """
+    Returns the given field as a DateTime object.
+
+    This is necessary because Postgres and SQLite return different values
+    for datetime columns (DateTime vs. string).
+
+    """
+    if isinstance(value, basestring):
+        return datetime.strptime(value, '%Y-%m-%d')
+    return value
 
 
 def get_months_of_year(year):
