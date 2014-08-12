@@ -157,6 +157,16 @@ class TransactionManager(models.Manager):
         qs = qs.aggregate(models.Sum('value_gross'))
         return qs['value_gross__sum'] + account.initial_amount
 
+    def get_totals_by_payee(self, account, start_date=None, end_date=None):
+        """
+        Returns transaction totals grouped by Payee.
+
+        """
+        qs = Transaction.objects.filter(account=account, parent__isnull=True)
+        qs = qs.values('payee').annotate(models.Sum('value_gross'))
+        qs = qs.order_by('payee__name')
+        return qs
+
     def get_without_invoice(self):
         """
         Returns transactions that don't have an invoice.

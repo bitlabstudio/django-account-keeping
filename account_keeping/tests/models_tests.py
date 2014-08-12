@@ -1,4 +1,6 @@
 """Tests for the models of the account_keeping app."""
+from decimal import Decimal
+
 from django.test import TestCase
 
 from . import factories
@@ -87,3 +89,14 @@ class TransactionTestCase(TestCase):
         obj = factories.TransactionFactory(transaction_type=WITHDRAWAL)
         self.assertEqual(obj.value_net, obj.amount_net * -1, msg=(
             'When type is withdrawal, the value should be negative'))
+
+    def test_get_totals_by_payee(self):
+        """Tests for the ``get_totals_by_payee`` method."""
+        trans1a = factories.TransactionFactory()
+        factories.TransactionFactory(
+            account=trans1a.account, payee=trans1a.payee)
+        factories.TransactionFactory(account=trans1a.account)
+        result = models.Transaction.objects.get_totals_by_payee(
+            trans1a.account)
+        self.assertEqual(result[0]['value_gross__sum'], Decimal('-23.8'), msg=(
+            'Should return all transactions grouped by payee'))
