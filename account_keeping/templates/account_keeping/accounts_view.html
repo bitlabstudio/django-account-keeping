@@ -23,72 +23,36 @@
                 <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
                 <a class="btn btn-primary btn-above-table" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a>
                 <table class="table table-hover table-condensed small">
-                    <thead>
-                        <tr>
-                            <th>{% trans "ID" %}</th>
-                            <th>{% trans "Date" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th>{% trans "Invoice" %}</th>
-                            <th>{% trans "Payee" %}</th>
-                            <th>{% trans "Category" %}</th>
-                            <th>{% trans "Amount (net)" %}</th>
-                            <th>{% trans "VAT" %}</th>
-                            <th>{% trans "Amount (gross)" %}</th>
-                            <th>{% trans "Balance (gross)" %}</th>
-                        </tr>
-                    </thead>
+                    {% include "account_keeping/partials/transactions_table_head.html" with show_balance=1 %}
                     <tbody>
                         {% save "BALANCE" value_dict.account_balance %}
                         <tr>
-                            <td colspan="6"><strong>{% trans "Income total" %}</strong></td>
+                            <td colspan="7"><strong>{% trans "Income total" %}</strong></td>
                             <td><strong>{{ value_dict.income_net_total|currency }}</strong></td>
                             <td></td>
                             <td><strong>{{ value_dict.income_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan="6"><strong>{% trans "Expenses total" %}</strong></td>
+                            <td colspan="7"><strong>{% trans "Expenses total" %}</strong></td>
                             <td><strong>{{ value_dict.expenses_net_total|currency }}</strong></td>
                             <td></td>
                             <td><strong>{{ value_dict.expenses_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan="6"><strong>{% trans "Profit total" %}</strong></td>
+                            <td colspan="7"><strong>{% trans "Profit total" %}</strong></td>
                             <td><strong>{{ value_dict.amount_net_total|currency }}</strong></td>
                             <td></td>
                             <td><strong>{{ value_dict.amount_gross_total|currency }}</strong></td>
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan="9"><strong>{% trans "Current balance" %}</strong></td>
+                            <td colspan="10"><strong>{% trans "Current balance" %}</strong></td>
                             <td>{{ BALANCE }}</td>
                         </tr>
-                        {% for transaction in value_dict.transactions %}
-                            <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
-                                <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
-                                <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
-                                <td>{{ transaction.description|default:"n/a" }}</td>
-                                <td>
-                                    {% if transaction.invoice %}
-                                        <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number|default:transaction.invoice.pk }}</a>
-                                    {% elif transaction.invoice_number %}
-                                        {{ transaction.invoice_number }}
-                                    {% else %}
-                                        {% trans "n/a" %}
-                                    {% endif %}
-                                </td>
-                                <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
-                                <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
-                                <td>{{ transaction.amount_net|currency }}</td>
-                                <td>{{ transaction.vat }}</td>
-                                <td>{{ transaction.amount_gross|currency }}</td>
-                                <td>{{ BALANCE|currency }}</td>
-                                {% sum "BALANCE" transaction.value_gross multiplier=-1 %}
-                            </tr>
-                        {% empty %}
-                            <tr><td colspan="10">{% trans "No transactions found for this month." %}</td></tr>
-                        {% endfor %}
+                        {% save "BALANCE" value_dict.account_balance %}
+                        {% include "account_keeping/partials/transactions_table_body.html" with show_balance=1 transactions=value_dict.transactions %}
                     </tbody>
                 </table>
                 <a class="btn btn-primary" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a>
