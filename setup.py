@@ -38,7 +38,7 @@ dev_requires = [
 
 install_requires = [
     'django',
-    'django-libs>=1.50',
+    'django-libs>=1.61.1',
     'python-dateutil',
 ]
 
