@@ -3,17 +3,24 @@
     <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
         <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
         <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
-        <td>{{ transaction.description|default:"n/a" }}</td>
+        <td>{{ transaction.get_description|linebreaksbr }}</td>
         <td>
-            {% if transaction.invoice %}
-                <a href="{% url "admin:account_keeping_invoice_change" transaction.invoice.pk %}">{{ transaction.invoice.invoice_number|default:transaction.invoice.pk }}</a>
-            {% elif transaction.invoice_number %}
-                {{ transaction.invoice_number }}
-            {% else %}
-                {% trans "n/a" %}
-            {% endif %}
+            {% for invoice in transaction.get_invoices %}
+                {% if invoice %}
+                    <a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.invoice_number|default:invoice.pk }}</a>
+                {% elif transaction.invoice_number %}
+                    {{ transaction.invoice_number }}
+                {% else %}
+                    {% trans "n/a" %}
+                {% endif %}
+                {% if not forloop.last %}, {% endif %}
+            {% endfor %}
         </td>
-        <td>{% if transaction.invoice.pdf %}<a href="{{ MEDIA_URL }}{{ transaction.invoice.pdf }}"><span class="glyphicon glyphicon-file"></span></a>{% else %}n/a{% endif %}</td>
+        <td>
+            {% for invoice in transaction.get_invoices %}
+                {% if invoice.pdf %}<a href="{{ MEDIA_URL }}{{ invoice.pdf }}"><span class="glyphicon glyphicon-file"></span></a>{% else %}n/a{% endif %}
+            {% endfor %}
+        </td>
         <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
         <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
         <td>{{ transaction.amount_net|currency }}</td>

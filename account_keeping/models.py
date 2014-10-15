@@ -230,6 +230,24 @@ class Transaction(AmountMixin, models.Model):
             return self.invoice.invoice_number
         return '{0} - {1}'.format(self.payee, self.category)
 
+    def get_description(self):
+        if self.description:
+            return self.description
+        if self.invoice and self.invoice.description:
+            return self.invoice.description
+        description = ''
+        for child in self.children.all():
+            if child.description:
+                description += '{0},\n'.format(child.description)
+            elif child.invoice and child.invoice.description:
+                description += '{0},\n'.format(child.invoice.description)
+        return description or 'n/a'
+
+    def get_invoices(self):
+        if self.children.all():
+            return [child.invoice for child in self.children.all()]
+        return [self.invoice, ]
+
     def save(self, *args, **kwargs):
         self.set_amount_fields()
         self.set_value_fields('transaction_type')
