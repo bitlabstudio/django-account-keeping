@@ -8,12 +8,12 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        for currency in orm.Currency:
-            orm['currency_history.Currency'].objects.create(
+        for currency in orm.Currency.objects.all():
+            orm['currency_history.Currency'].objects.get_or_create(
                 title=currency.name,
                 iso_code=currency.iso_code,
             )
-        for rate in orm.CurrencyRate:
+        for rate in orm.CurrencyRate.objects.all():
             from_currency = orm['currency_history.Currency'].objects.get(
                 iso_code=rate.currency.iso_code)
             to_currency = orm['currency_history.Currency'].objects.get(
@@ -23,13 +23,13 @@ class Migration(DataMigration):
                     from_currency=from_currency,
                     to_currency=to_currency,
                 )
-            rate = orm['currency_history.CurrencyRateHistory'].objects.create(
+            history = orm['currency_history.CurrencyRateHistory'].objects.create(
                 value=rate.rate,
                 rate=rate_obj,
             )
-            rate.date = rate.date.replace(day=1).replace(
+            history.date = history.date.replace(day=1).replace(
                 month=rate.month).replace(year=rate.year)
-            rate.save()
+            history.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
@@ -110,6 +110,20 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'iso_code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '3'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+        },
+        u'currency_history.currencyrate': {
+            'Meta': {'ordering': "['from_currency__iso_code', 'to_currency__iso_code']", 'object_name': 'CurrencyRate'},
+            'from_currency': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'rates_from'", 'to': u"orm['currency_history.Currency']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'to_currency': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'rates_to'", 'to': u"orm['currency_history.Currency']"})
+        },
+        u'currency_history.currencyratehistory': {
+            'Meta': {'ordering': "['-date', 'rate__to_currency__iso_code']", 'object_name': 'CurrencyRateHistory'},
+            'date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'rate': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'history'", 'to': u"orm['currency_history.CurrencyRate']"}),
+            'tracked_by': ('django.db.models.fields.CharField', [], {'default': "u'Add your email'", 'max_length': '512'}),
+            'value': ('django.db.models.fields.FloatField', [], {})
         }
     }
 
