@@ -11,20 +11,6 @@ WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 
 
-class CurrencyTestCase(TestCase):
-    """Tests for the ``Currency`` model."""
-    def test_model(self):
-        obj = factories.CurrencyFactory()
-        self.assertTrue(obj.pk)
-
-
-class CurrencyRateTestCase(TestCase):
-    """Tests for the ``CurrencyRate`` model."""
-    def test_model(self):
-        obj = factories.CurrencyRateFactory()
-        self.assertTrue(obj.pk)
-
-
 class AccountTestCase(TestCase):
     """Tests for the ``Account`` model."""
     def test_model(self):

@@ -3,6 +3,10 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils.timezone import now
 
+from currency_history.tests.factories import (
+    CurrencyFactory,
+    CurrencyRateHistoryFactory,
+)
 from django_libs.tests.factories import UserFactory
 from django_libs.tests.mixins import ViewRequestFactoryTestMixin
 
@@ -17,17 +21,20 @@ class AllTimeViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory(is_superuser=True)
-        self.ccy = factories.CurrencyFactory(is_base_currency=True)
+        self.ccy = CurrencyFactory(iso_code='EUR')
         self.account = factories.AccountFactory(currency=self.ccy)
         self.trans1 = factories.TransactionFactory(
             account=self.account, currency=self.ccy)
 
-        self.ccy2 = factories.CurrencyFactory()
+        self.ccy2 = CurrencyFactory()
         self.account2 = factories.AccountFactory(currency=self.ccy2)
         self.trans2 = factories.TransactionFactory(
             account=self.account2, currency=self.ccy2)
-        factories.CurrencyRateFactory(
-            currency=self.ccy2, year=now().year, month=now().month)
+        CurrencyRateHistoryFactory(
+            rate__from_currency=self.ccy2,
+            rate__to_currency=self.ccy,
+            date=now(),
+        )
 
     def get_view_kwargs(self):
         return {}
@@ -80,17 +87,20 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory(is_superuser=True)
-        self.ccy = factories.CurrencyFactory(is_base_currency=True)
+        self.ccy = CurrencyFactory(iso_code='EUR')
         self.account = factories.AccountFactory(currency=self.ccy)
         self.trans1 = factories.TransactionFactory(
             account=self.account, currency=self.ccy)
 
-        self.ccy2 = factories.CurrencyFactory()
+        self.ccy2 = CurrencyFactory()
         self.account2 = factories.AccountFactory(currency=self.ccy2)
         self.trans2 = factories.TransactionFactory(
             account=self.account2, currency=self.ccy2)
-        factories.CurrencyRateFactory(
-            currency=self.ccy2, year=now().year, month=now().month)
+        CurrencyRateHistoryFactory(
+            rate__from_currency=self.ccy2,
+            rate__to_currency=self.ccy,
+            date=now(),
+        )
 
     def get_view_kwargs(self):
         return {
@@ -110,9 +120,7 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory(is_superuser=True)
-        self.ccy = factories.CurrencyFactory(is_base_currency=True)
-        for i in range(12):
-            factories.CurrencyRateFactory(currency=self.ccy, month=i + 1)
+        self.ccy = CurrencyFactory(iso_code='EUR')
         self.account = factories.AccountFactory(currency=self.ccy)
         self.trans1 = factories.TransactionFactory(
             account=self.account, currency=self.ccy)
@@ -120,9 +128,15 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             account=self.account, currency=self.ccy,
             transaction_type=views.DEPOSIT)
 
-        self.ccy2 = factories.CurrencyFactory()
+        self.ccy2 = CurrencyFactory()
         for i in range(12):
-            factories.CurrencyRateFactory(currency=self.ccy2, month=i + 1)
+            new_date = now().replace(day=1).replace(month=i + 1)
+            rate = CurrencyRateHistoryFactory(
+                rate__from_currency=self.ccy2,
+                rate__to_currency=self.ccy,
+            )
+            rate.date = new_date
+            rate.save()
         self.account2 = factories.AccountFactory(currency=self.ccy2)
         self.trans3 = factories.TransactionFactory(
             account=self.account2, currency=self.ccy2)

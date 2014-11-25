@@ -1,6 +1,8 @@
 """Views for the account_keeping app."""
+import decimal
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.db.models import Q, Sum
@@ -10,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django.views.generic import TemplateView, View
 
+from currency_history.models import Currency, CurrencyRateHistory
 from dateutil import relativedelta
 
 from . import models
@@ -54,10 +57,10 @@ class AccountsViewMixin(object):
             'income_net': 0,
             'income_gross': 0,
         }
-        base_currency = models.Currency.objects.get(is_base_currency=True)
+        base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         for account in accounts:
             rate = 1
-            if not account.currency.is_base_currency:
+            if not account.currency.iso_code == base_currency:
                 rate = self.get_rate(account.currency)
 
             account_balance = self.get_account_balance(account)
@@ -120,9 +123,9 @@ class AccountsViewMixin(object):
         outstanding_income_gross_total_base = 0
         outstanding_profit_gross_total_base = 0
         outstanding_ccy_totals = {}
-        for currency in models.Currency.objects.all():
+        for currency in Currency.objects.all():
             rate = 1
-            if not currency.is_base_currency:
+            if not currency.iso_code == base_currency:
                 rate = self.get_rate(currency)
             outstanding_expenses_gross_sum = qs.filter(
                 invoice_type=WITHDRAWAL, currency=currency).aggregate(
@@ -225,8 +228,11 @@ class AllTimeView(AccountsViewMixin, TemplateView):
         )
 
     def get_rate(self, currency):
-        return models.CurrencyRate.objects.filter(
-            currency=currency).order_by('-year', '-month')[:1][0].rate
+        return decimal.Decimal(CurrencyRateHistory.objects.filter(
+            rate__from_currency=currency,
+            rate__to_currency__iso_code=getattr(
+                settings, 'BASE_CURRENCY', 'EUR'),
+        )[0].value)
 
     def get_transactions(self, account):
         return models.Transaction.objects.filter(
@@ -315,10 +321,13 @@ class MonthView(AccountsViewMixin, TemplateView):
         ).prefetch_related('transactions')
 
     def get_rate(self, currency):
-        return models.CurrencyRate.objects.get(
-            year=self.month.year, month=self.month.month,
-            currency=currency,
-        ).rate
+        return decimal.Decimal(CurrencyRateHistory.objects.filter(
+            rate__from_currency=currency,
+            rate__to_currency__iso_code=getattr(
+                settings, 'BASE_CURRENCY', 'EUR'),
+            date__year=self.month.year,
+            date__month=self.month.month,
+        )[0].value)
 
     def get_transactions(self, account):
         return models.Transaction.objects.filter(
@@ -369,17 +378,20 @@ class YearOverviewView(TemplateView):
             income_total[row['month']] += row['amount_gross__sum']
 
         month_rates = {}
+        base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         for month in months:
-            for currency in models.Currency.objects.all():
+            for currency in Currency.objects.all():
                 rate = 1
-                if not currency.is_base_currency:
-                    rate = models.CurrencyRate.objects.get(
-                        currency=currency,
-                        year=month.year,
-                        month=month.month).rate
+                if not currency.iso_code == base_currency:
+                    rate = CurrencyRateHistory.objects.filter(
+                        rate__from_currency=currency,
+                        rate__to_currency__iso_code=base_currency,
+                        date__year=month.year,
+                        date__month=month.month,
+                    )[0].value
                 if month not in month_rates:
                     month_rates[month] = {}
-                month_rates[month][currency.pk] = rate
+                month_rates[month][currency.pk] = decimal.Decimal(rate)
 
         for row in qs_income:
             row['amount_gross__sum'] = \
@@ -498,7 +510,7 @@ class YearOverviewView(TemplateView):
                     # happens when there are no Transactions for that month
                     qs_balance['value_gross__sum'] = 0
                     qs_balance['value_gross__sum'] += account.initial_amount
-                if not account.currency.is_base_currency:
+                if not account.currency.iso_code == base_currency:
                     qs_balance['value_gross__sum'] = \
                         qs_balance['value_gross__sum'] \
                         * month_rates[month][account.currency.pk]
@@ -597,5 +609,8 @@ class YearOverviewView(TemplateView):
         return ctx
 
     def get_rate(self, currency):
-        return models.CurrencyRate.objects.filter(
-            currency=currency).order_by('-year', '-month')[:1][0].rate
+        return decimal.Decimal(CurrencyRateHistory.objects.filter(
+            rate__from_currency=currency,
+            rate__to_currency__iso_code=getattr(
+                settings, 'BASE_CURRENCY', 'EUR'),
+        )[0].value)

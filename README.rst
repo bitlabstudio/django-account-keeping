@@ -19,13 +19,14 @@ To get the latest commit from GitHub
     pip install -e git+git://github.com/bitmazk/django-account-keeping.git#egg=account_keeping
 
 
-Add ``account_keeping`` to your ``INSTALLED_APPS``
+Add ``account_keeping`` and ``currency_history`` to your ``INSTALLED_APPS``
 
 .. code-block:: python
 
     INSTALLED_APPS = (
         ...,
         'account_keeping',
+        'currency_history',
     )
 
 Add the ``account_keeping`` URLs to your ``urls.py``
@@ -42,21 +43,19 @@ Don't forget to migrate your database
 .. code-block:: bash
 
     ./manage.py migrate account_keeping
+    ./manage.py migrate currency_history
 
 
 Usage
 -----
 
-Add Currency objects
-^^^^^^^^^^^^^^^^^^^^
+Configure currency history app
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The first thing you should do is to add some currencies. If your business
-has accounts in several currency, you must mark one currency as the base
-currency. On views that show grand totals over all your accounts, all values
-will be converted to the base currency before added to the total.
+Follow the instructions at: https://github.com/bitmazk/django-currency-history
 
-Adding Currency objects can be done via the Django admin and should be
-intuitive.
+Make sure you add all needed currencies first. Second, define the wanted rates.
+Then make sure to get the latest rate history and add it by yourself.
 
 Add Account objects
 ^^^^^^^^^^^^^^^^^^^
@@ -65,18 +64,6 @@ Next you need to create your accounts. Note that the field `total_amount` is
 currently not used. It might eventually be used in the future for performance
 optimisations but at the moment it seems that computing the totals on the
 fly is fast enough.
-
-Add CurrencyRate objects
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-For every month that has Transaction objects you need to create a
-`CurrencyRate` object as well. This makes sure that when you look at the month
-overview view (or year overview view) you will always see the same numbers and
-not floating numbers based on todays exchange rates.
-
-You need to add objects for each month and each currency except the base
-currency. Example: if you have three currencies and transactions covering two
-years, you should have 24 `CurrencyRate` objects.
 
 Import data from Money Manager Ex
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,6 +99,17 @@ case you should do the following:
 2. For each invoice that has been paid, create a transaction that has the
    first transaction as a parent and of course create an invoice that is tied
    to it's transaction.
+
+Settings
+^^^^^^^^
+
+BASE_CURRENCY
+*************
+
+Default: 'EUR'
+
+Define a default currency. All time statistics and summaries are displayed
+using this setting.
 
 Currently available views
 ^^^^^^^^^^^^^^^^^^^^^^^^^

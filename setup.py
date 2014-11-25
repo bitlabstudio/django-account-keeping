@@ -40,6 +40,7 @@ install_requires = [
     'django',
     'django-libs>=1.61.1',
     'python-dateutil',
+    'django-currency-history',
 ]
 
 

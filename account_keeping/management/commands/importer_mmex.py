@@ -13,6 +13,8 @@ import datetime
 
 from django.core.management.base import BaseCommand, CommandError
 
+from currency_history.models import Currency
+
 from account_keeping import models
 
 
@@ -39,9 +41,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            currency = models.Currency.objects.get(
-                iso_code=options.get('currency'))
-        except models.Currency.DoesNotExist:
+            currency = Currency.objects.get(iso_code=options.get('currency'))
+        except Currency.DoesNotExist:
             raise CommandError('The specified currency does not exist')
 
         account = models.Account.objects.get(slug=options.get('account'))

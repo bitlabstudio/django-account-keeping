@@ -53,6 +53,7 @@ EXTERNAL_APPS = [
     'django_jasmine',
     'django_nose',
     'django_libs',
+    'currency_history',
 ]
 
 INTERNAL_APPS = [
@@ -64,3 +65,5 @@ INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS
 COVERAGE_MODULE_EXCLUDES += EXTERNAL_APPS
 
 SECRET_KEY = 'foobar'
+
+CURRENCY_SERVICE = 'yahoo'

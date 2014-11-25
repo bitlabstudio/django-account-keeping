@@ -39,34 +39,27 @@ class AmountMixin(object):
         self.value_gross = self.amount_gross * multiplier
 
 
-class Currency(models.Model):
-    name = models.CharField(max_length=64)
-    iso_code = models.CharField(max_length=3)
-    is_base_currency = models.BooleanField(default=False)
-
-    def __unicode__(self):
-        return self.iso_code
-
-
-class CurrencyRate(models.Model):
-    currency = models.ForeignKey(Currency)
-    year = models.PositiveIntegerField()
-    month = models.PositiveIntegerField()
-    rate = models.DecimalField(max_digits=18, decimal_places=8)
-
-    def __unicode__(self):
-        return '{0}, {1}-{2}: {3}'.format(
-            self.currency.iso_code, self.year, self.month, self.rate)
-
-
 class Account(models.Model):
     name = models.CharField(max_length=128)
+
     slug = models.SlugField(max_length=128)
-    currency = models.ForeignKey(Currency, related_name='accounts')
+
+    currency = models.ForeignKey(
+        'currency_history.Currency',
+        related_name='accounts',
+    )
+
     initial_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
     total_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
 
     def __unicode__(self):
         return self.name
@@ -91,21 +84,56 @@ class Invoice(AmountMixin, models.Model):
         (INVOICE_TYPES['deposit'], 'deposit'),
     ]
 
-    invoice_type = models.CharField(max_length=1, choices=INVOICE_TYPE_CHOICES)
+    invoice_type = models.CharField(
+        max_length=1,
+        choices=INVOICE_TYPE_CHOICES,
+    )
+
     invoice_date = models.DateField()
+
     invoice_number = models.CharField(max_length=256, blank=True)
+
     description = models.TextField(blank=True)
-    currency = models.ForeignKey(Currency, related_name='invoices')
+
+    currency = models.ForeignKey(
+        'currency_history.Currency',
+        related_name='invoices',
+    )
+
     amount_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0, blank=True)
-    vat = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        blank=True,
+    )
+
+    vat = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=0,
+    )
+
     amount_gross = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0, blank=True)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        blank=True,
+    )
+
     value_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
     value_gross = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
     payment_date = models.DateField(blank=True, null=True)
+
     pdf = models.FileField(upload_to='invoice_files', blank=True, null=True)
 
     objects = InvoiceManager()
@@ -193,30 +221,66 @@ class Transaction(AmountMixin, models.Model):
     ]
 
     account = models.ForeignKey(Account, related_name='transactions')
+
     parent = models.ForeignKey(
         'account_keeping.Transaction',
         related_name='children',
         blank=True, null=True,
     )
+
     transaction_type = models.CharField(
-        max_length=1, choices=TRANSACTION_TYPE_CHOICES)
+        max_length=1,
+        choices=TRANSACTION_TYPE_CHOICES,
+    )
+
     transaction_date = models.DateField()
+
     description = models.TextField(blank=True)
+
     invoice_number = models.CharField(max_length=256, blank=True)
+
     invoice = models.ForeignKey(
-        Invoice, blank=True, null=True, related_name='transactions')
+        Invoice,
+        blank=True, null=True,
+        related_name='transactions',
+    )
+
     payee = models.ForeignKey(Payee, related_name='transactions')
+
     category = models.ForeignKey(Category, related_name='transactions')
-    currency = models.ForeignKey(Currency, related_name='transactions')
+
+    currency = models.ForeignKey(
+        'currency_history.Currency',
+        related_name='transactions',
+    )
+
     amount_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0, blank=True)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        blank=True,
+    )
+
     vat = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+
     amount_gross = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0, blank=True)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        blank=True,
+    )
+
     value_net = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
     value_gross = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0)
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
 
     objects = TransactionManager()
 
