@@ -1,58 +1,38 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
+from django.conf import settings
 from django.db import models
 
-
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Deleting model 'CurrencyRate'
-        db.delete_table(u'account_keeping_currencyrate')
-
-        # Deleting model 'Currency'
-        db.delete_table(u'account_keeping_currency')
-
-
-        # Changing field 'Account.currency'
-        db.alter_column(u'account_keeping_account', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['currency_history.Currency']))
-
-        # Changing field 'Invoice.currency'
-        db.alter_column(u'account_keeping_invoice', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['currency_history.Currency']))
-
-        # Changing field 'Transaction.currency'
-        db.alter_column(u'account_keeping_transaction', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['currency_history.Currency']))
+        for currency in orm.Currency:
+            orm['currency_history.Currency'].objects.create(
+                title=currency.name,
+                iso_code=currency.iso_code,
+            )
+        for rate in orm.CurrencyRate:
+            from_currency = orm['currency_history.Currency'].objects.get(
+                iso_code=rate.currency.iso_code)
+            to_currency = orm['currency_history.Currency'].objects.get(
+                iso_code=getattr(settings, 'BASE_CURRENCY', 'EUR'))
+            rate_obj, created = orm[
+                'currency_history.CurrencyRate'].objects.get_or_create(
+                    from_currency=from_currency,
+                    to_currency=to_currency,
+                )
+            rate = orm['currency_history.CurrencyRateHistory'].objects.create(
+                value=rate.rate,
+                rate=rate_obj,
+            )
+            rate.date = rate.date.replace(day=1).replace(
+                month=rate.month).replace(year=rate.year)
+            rate.save()
 
     def backwards(self, orm):
-        # Adding model 'CurrencyRate'
-        db.create_table(u'account_keeping_currencyrate', (
-            ('month', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('currency', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account_keeping.Currency'])),
-            ('rate', self.gf('django.db.models.fields.DecimalField')(max_digits=18, decimal_places=8)),
-            ('year', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-        ))
-        db.send_create_signal(u'account_keeping', ['CurrencyRate'])
-
-        # Adding model 'Currency'
-        db.create_table(u'account_keeping_currency', (
-            ('iso_code', self.gf('django.db.models.fields.CharField')(max_length=3)),
-            ('is_base_currency', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-        ))
-        db.send_create_signal(u'account_keeping', ['Currency'])
-
-
-        # Changing field 'Account.currency'
-        db.alter_column(u'account_keeping_account', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account_keeping.Currency']))
-
-        # Changing field 'Invoice.currency'
-        db.alter_column(u'account_keeping_invoice', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account_keeping.Currency']))
-
-        # Changing field 'Transaction.currency'
-        db.alter_column(u'account_keeping_transaction', 'currency_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account_keeping.Currency']))
+        "Write your backwards methods here."
 
     models = {
         u'account_keeping.account': {
@@ -68,6 +48,21 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['name']", 'object_name': 'Category'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'})
+        },
+        u'account_keeping.currency': {
+            'Meta': {'object_name': 'Currency'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_base_currency': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'iso_code': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
+        },
+        u'account_keeping.currencyrate': {
+            'Meta': {'object_name': 'CurrencyRate'},
+            'currency': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['account_keeping.Currency']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'month': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'rate': ('django.db.models.fields.DecimalField', [], {'max_digits': '18', 'decimal_places': '8'}),
+            'year': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         u'account_keeping.invoice': {
             'Meta': {'ordering': "['-invoice_date']", 'object_name': 'Invoice'},
@@ -119,3 +114,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['account_keeping']
+    symmetrical = True
