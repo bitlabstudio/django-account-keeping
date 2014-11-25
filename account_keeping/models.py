@@ -9,26 +9,6 @@ from decimal import Decimal
 from django.db import models
 
 
-class Currency(models.Model):
-    name = models.CharField(max_length=64)
-    iso_code = models.CharField(max_length=3)
-    is_base_currency = models.BooleanField(default=False)
-
-    def __unicode__(self):
-        return self.iso_code
-
-
-class CurrencyRate(models.Model):
-    currency = models.ForeignKey(Currency)
-    year = models.PositiveIntegerField()
-    month = models.PositiveIntegerField()
-    rate = models.DecimalField(max_digits=18, decimal_places=8)
-
-    def __unicode__(self):
-        return '{0}, {1}-{2}: {3}'.format(
-            self.currency.iso_code, self.year, self.month, self.rate)
-
-
 class AmountMixin(object):
     """
     Mixin that handles amount_net, vat and amount_gross fields on save().
