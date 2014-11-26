@@ -32,8 +32,8 @@ admin.site.register(models.Category, CategoryAdmin)
 
 class TransactionAdmin(admin.ModelAdmin):
     list_display = [
-        'transaction_date', 'invoice_number', 'invoice', 'payee', 'category',
-        'currency', 'value_net', 'vat', 'value_gross', ]
+        'transaction_date', 'parent', 'invoice_number', 'invoice', 'payee',
+        'category', 'currency', 'value_net', 'vat', 'value_gross', ]
     list_filter = ['account', 'currency', 'payee', 'category']
     date_hierarchy = 'transaction_date'
     raw_id_fields = ['parent', 'invoice']
