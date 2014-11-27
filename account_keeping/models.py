@@ -303,10 +303,10 @@ class Transaction(AmountMixin, models.Model):
         description = ''
         for child in self.children.all():
             if child.description:
-                description += '{0},\n'.format(child.description)
+                description += u'{0},\n'.format(child.description)
             elif child.invoice and child.invoice.description:
-                description += '{0},\n'.format(child.invoice.description)
-        return description or 'n/a'
+                description += u'{0},\n'.format(child.invoice.description)
+        return description or u'n/a'
 
     def get_invoices(self):
         if self.children.all():
