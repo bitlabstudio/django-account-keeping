@@ -183,7 +183,8 @@ class TransactionManager(models.Manager):
         """
         qs = Transaction.objects.filter(account=account, parent__isnull=True)
         qs = qs.aggregate(models.Sum('value_gross'))
-        return qs['value_gross__sum'] + account.initial_amount
+        value_gross = qs['value_gross__sum'] or 0
+        return value_gross + account.initial_amount
 
     def get_totals_by_payee(self, account, start_date=None, end_date=None):
         """
