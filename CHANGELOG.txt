@@ -2,6 +2,7 @@
 
 - Bugfix: Home view crashes when account is empty
 - Bugfix: Fixed Unicode bug in `Transaction.get_description`
+- Added `Type` column to tansactions table
 
 === 0.2 ===
 

@@ -23,6 +23,7 @@
         </td>
         <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
         <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
+        <td>{% if transaction.transaction_type == 'w' %}{% trans "DR" %}{% else %}{% trans "CR" %}{% endif %}</td>
         <td>{{ transaction.amount_net|currency }}</td>
         <td>{{ transaction.vat }}</td>
         <td>{{ transaction.amount_gross|currency }}</td>
