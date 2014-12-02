@@ -3,6 +3,7 @@
 - Bugfix: Home view crashes when account is empty
 - Bugfix: Fixed Unicode bug in `Transaction.get_description`
 - Added `Type` column to tansactions table
+- Added `collect_invoices` management command
 
 === 0.2 ===
 
