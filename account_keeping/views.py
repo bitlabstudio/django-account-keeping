@@ -321,13 +321,19 @@ class MonthView(AccountsViewMixin, TemplateView):
         ).prefetch_related('transactions')
 
     def get_rate(self, currency):
-        return decimal.Decimal(CurrencyRateHistory.objects.filter(
+        rates = CurrencyRateHistory.objects.filter(
             rate__from_currency=currency,
             rate__to_currency__iso_code=getattr(
                 settings, 'BASE_CURRENCY', 'EUR'),
-            date__year=self.month.year,
-            date__month=self.month.month,
-        )[0].value)
+        )
+        try:
+            return decimal.Decimal(rates.filter(
+                date__year=self.month.year,
+                date__month=self.month.month,
+            )[0].value)
+        except IndexError:
+            # Get latest rate history record
+            return decimal.Decimal(rates[0].value)
 
     def get_transactions(self, account):
         return models.Transaction.objects.filter(
@@ -383,12 +389,18 @@ class YearOverviewView(TemplateView):
             for currency in Currency.objects.all():
                 rate = 1
                 if not currency.iso_code == base_currency:
-                    rate = CurrencyRateHistory.objects.filter(
+                    rates = CurrencyRateHistory.objects.filter(
                         rate__from_currency=currency,
                         rate__to_currency__iso_code=base_currency,
-                        date__year=month.year,
-                        date__month=month.month,
-                    )[0].value
+                    )
+                    try:
+                        rate = decimal.Decimal(rates.filter(
+                            date__year=month.year,
+                            date__month=month.month,
+                        )[0].value)
+                    except IndexError:
+                        # Get latest rate history record
+                        rate = decimal.Decimal(rates[0].value)
                 if month not in month_rates:
                     month_rates[month] = {}
                 month_rates[month][currency.pk] = decimal.Decimal(rate)

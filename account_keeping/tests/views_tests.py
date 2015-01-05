@@ -1,7 +1,7 @@
 """Tests for the views of the account_keeping app."""
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.utils.timezone import now
+from django.utils.timezone import now, timedelta
 
 from currency_history.tests.factories import (
     CurrencyFactory,
@@ -96,11 +96,12 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.account2 = factories.AccountFactory(currency=self.ccy2)
         self.trans2 = factories.TransactionFactory(
             account=self.account2, currency=self.ccy2)
-        CurrencyRateHistoryFactory(
+        rate = CurrencyRateHistoryFactory(
             rate__from_currency=self.ccy2,
             rate__to_currency=self.ccy,
-            date=now(),
         )
+        rate.date = now() - timedelta(days=131)
+        rate.save()
 
     def get_view_kwargs(self):
         return {
@@ -129,8 +130,8 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             transaction_type=views.DEPOSIT)
 
         self.ccy2 = CurrencyFactory()
-        for i in range(12):
-            new_date = now().replace(day=1).replace(month=i + 1)
+        for i in range(11):
+            new_date = now().replace(day=1).replace(month=i + 2)
             rate = CurrencyRateHistoryFactory(
                 rate__from_currency=self.ccy2,
                 rate__to_currency=self.ccy,
