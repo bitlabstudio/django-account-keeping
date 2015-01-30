@@ -482,24 +482,23 @@ class YearOverviewView(TemplateView):
             # TODO: Centralise this, we have this select in
             # get_outstanding_invoices already
             qs = models.Invoice.objects.filter(
-                Q(invoice_type=DEPOSIT),
                 Q(invoice_date__lt=next_month),
                 Q(payment_date__isnull=True) | Q(payment_date__gte=next_month))
             qs = qs.prefetch_related(
                 'transactions')
             qs = qs.extra({'month': truncate_invoice_date, })
             qs = qs.values('currency')
-            qs = qs.annotate(Sum('amount_gross'))
+            qs = qs.annotate(Sum('value_gross'))
             qs_outstanding_month = qs.order_by('currency')
 
             for row in qs_outstanding_month:
-                row['amount_gross__sum'] = \
-                    row['amount_gross__sum'] \
+                row['value_gross__sum'] = \
+                    row['value_gross__sum'] \
                     * month_rates[month][row['currency']]
                 try:
-                    outstanding_total[month] += row['amount_gross__sum']
+                    outstanding_total[month] += row['value_gross__sum']
                 except KeyError:
-                    outstanding_total[month] = row['amount_gross__sum']
+                    outstanding_total[month] = row['value_gross__sum']
 
         balance_total = {}
         for month in months:
