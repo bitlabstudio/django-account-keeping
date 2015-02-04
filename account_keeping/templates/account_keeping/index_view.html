@@ -19,5 +19,12 @@
         <h2>{% trans "Invoices without PDF" %}</h2>
         {% include "account_keeping/partials/invoices_table.html" with invoices=invoices_without_pdf %}
     {% endif %}
+
+    {% if unpaid_invoices_with_transactions %}
+        <h2>{% trans "Unpaid Freckle invoices with transactions" %}</h2>
+        {% for invoice in unpaid_invoices_with_transactions %}
+            {{ invoice }}
+        {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}

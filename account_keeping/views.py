@@ -17,6 +17,7 @@ from dateutil import relativedelta
 
 from . import models
 from . import utils
+# from .freckle_api import get_unpaid_invoices_with_transactions
 from .utils import get_date as d
 
 
@@ -279,11 +280,16 @@ class IndexView(TemplateView):
         transactions_without_invoice = \
             models.Transaction.objects.get_without_invoice()
 
+        # unpaid_invoices_with_transactions = \
+        #     get_unpaid_invoices_with_transactions()
+
         ctx.update({
             'accounts_stats': accounts_stats,
             'invoices_without_pdf': invoices_without_pdf,
             'transactions_without_invoice': transactions_without_invoice,
             'transaction_types': models.Transaction.TRANSACTION_TYPES,
+            # 'unpaid_invoices_with_transactions':
+            #     unpaid_invoices_with_transactions,
         })
         return ctx
 
