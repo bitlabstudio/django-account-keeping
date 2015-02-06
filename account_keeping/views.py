@@ -382,13 +382,6 @@ class YearOverviewView(TemplateView):
         for i in range(1, 13):
             months.append(date(self.year, i, 1))
 
-        income_total = {}
-        for row in qs_income:
-            row['month'] = d(row['month']).date()
-            if row['month'] not in income_total:
-                income_total[row['month']] = 0
-            income_total[row['month']] += row['amount_gross__sum']
-
         month_rates = {}
         base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         for month in months:
@@ -412,9 +405,16 @@ class YearOverviewView(TemplateView):
                 month_rates[month][currency.pk] = decimal.Decimal(rate)
 
         for row in qs_income:
+            row['month'] = d(row['month']).date()
             row['amount_gross__sum'] = \
                 row['amount_gross__sum'] \
                 * month_rates[row['month']][row['currency']]
+
+        income_total = {}
+        for row in qs_income:
+            if row['month'] not in income_total:
+                income_total[row['month']] = 0
+            income_total[row['month']] += row['amount_gross__sum']
 
         qs_expenses = qs_year.filter(
             transaction_type=WITHDRAWAL).values(

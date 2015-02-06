@@ -60,7 +60,7 @@
         {% endfor %}
 
         <div class="tab-pane active" id="totals">
-            <h2>{% trans "Total" %} ({{ base_currency.iso_code }})</h2>
+            <h2>{% trans "Total" %} ({{ base_currency }})</h2>
 
             <table class="table table-hover table-condensed small">
                 <thead>
@@ -98,7 +98,7 @@
                 </tbody>
             </table>
 
-            <h2>{% trans "Outstanding total" %}</h2>
+            <h2>{% trans "Outstanding total" %} (CCY / {{ base_currency }})</h2>
 
             <table class="table table-hover table-condensed small">
                 <thead>
