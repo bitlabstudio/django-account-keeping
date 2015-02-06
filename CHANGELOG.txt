@@ -3,6 +3,7 @@
 - Bugfix: Fall back to old currency histories if there's no current one
 - Bugfix: Home view crashes when account is empty
 - Bugfix: Fixed Unicode bug in `Transaction.get_description`
+- Bugfix: Income column in year view did not convert foreign currency's before adding
 - Added `Type` column to tansactions table
 - Added `collect_invoices` management command
 
