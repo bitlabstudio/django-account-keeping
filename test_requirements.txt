@@ -1,12 +1,7 @@
 coverage
-django-coverage
-django-jasmine
-django-libs
-django-nose
-fabric
-factory_boy
+fabric3
+paramiko<2.0.0
 flake8
 ipdb
-mock
-selenium
-south
+tox
+mixer

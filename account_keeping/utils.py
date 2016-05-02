@@ -1,6 +1,7 @@
 """Utility functions for the account_keeping app."""
-
 from django.utils.timezone import datetime, now
+
+from six import string_types
 
 
 def get_date(value):
@@ -11,7 +12,7 @@ def get_date(value):
     for datetime columns (DateTime vs. string).
 
     """
-    if isinstance(value, basestring):
+    if isinstance(value, string_types):
         return datetime.strptime(value, '%Y-%m-%d')
     return value
 

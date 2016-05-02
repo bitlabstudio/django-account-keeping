@@ -12,4 +12,4 @@ class GetDateTestCase(TestCase):
 
     def test_function(self):
         result = utils.get_date('2014-01-01')
-        self.assertEqual(result, datetime.datetime(2014, 01, 01))
+        self.assertEqual(result, datetime.datetime(2014, 1, 1))

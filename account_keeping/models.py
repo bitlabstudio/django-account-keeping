@@ -7,6 +7,7 @@ TODO: Add lazy_trans and docstrings
 from decimal import Decimal
 
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 
 class AmountMixin(object):
@@ -39,6 +40,7 @@ class AmountMixin(object):
         self.value_gross = self.amount_gross * multiplier
 
 
+@python_2_unicode_compatible
 class Account(models.Model):
     name = models.CharField(max_length=128)
 
@@ -61,7 +63,7 @@ class Account(models.Model):
         default=0,
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -73,6 +75,7 @@ class InvoiceManager(models.Manager):
         return qs
 
 
+@python_2_unicode_compatible
 class Invoice(AmountMixin, models.Model):
     INVOICE_TYPES = {
         'withdrawal': 'w',
@@ -141,7 +144,7 @@ class Invoice(AmountMixin, models.Model):
     class Meta:
         ordering = ['-invoice_date', ]
 
-    def __unicode__(self):
+    def __str__(self):
         if self.invoice_number:
             return self.invoice_number
         return '{0} - {1}'.format(self.invoice_date, self.invoice_type)
@@ -152,23 +155,25 @@ class Invoice(AmountMixin, models.Model):
         return super(Invoice, self).save(*args, **kwargs)
 
 
+@python_2_unicode_compatible
 class Payee(models.Model):
     name = models.CharField(max_length=256)
 
     class Meta:
         ordering = ['name', ]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class Category(models.Model):
     name = models.CharField(max_length=256)
 
     class Meta:
         ordering = ['name', ]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -210,6 +215,7 @@ class TransactionManager(models.Manager):
         return qs
 
 
+@python_2_unicode_compatible
 class Transaction(AmountMixin, models.Model):
     TRANSACTION_TYPES = {
         'withdrawal': 'w',
@@ -288,7 +294,7 @@ class Transaction(AmountMixin, models.Model):
     class Meta:
         ordering = ['-transaction_date', ]
 
-    def __unicode__(self):
+    def __str__(self):
         if self.invoice_number:
             return self.invoice_number
         if self.invoice and self.invoice.invoice_number:

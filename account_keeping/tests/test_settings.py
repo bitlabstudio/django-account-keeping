@@ -1,11 +1,8 @@
 """Settings that need to be set in order to run the tests."""
 import os
-import logging
+
 
 DEBUG = True
-
-logging.getLogger("factory").setLevel(logging.WARN)
-
 SITE_ID = 1
 
 APP_ROOT = os.path.abspath(
@@ -28,16 +25,18 @@ STATICFILES_DIRS = (
     os.path.join(APP_ROOT, 'static'),
 )
 
-TEMPLATE_DIRS = (
-    os.path.join(APP_ROOT, 'tests/test_app/templates'),
-)
-
-COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(
-    os.path.join(APP_ROOT, 'tests/coverage'))
-COVERAGE_MODULE_EXCLUDES = [
-    'tests$', 'settings$', 'urls$', 'locale$',
-    'migrations', 'fixtures', 'admin$', 'django_extensions',
-]
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'APP_DIRS': True,
+    'DIRS': [os.path.join(APP_ROOT, 'tests/test_app/templates')],
+    'OPTIONS': {
+        'context_processors': (
+            'django.contrib.auth.context_processors.auth',
+            'django.template.context_processors.i18n',
+            'django.template.context_processors.request',
+        )
+    }
+}]
 
 EXTERNAL_APPS = [
     'django.contrib.admin',
@@ -50,8 +49,6 @@ EXTERNAL_APPS = [
     'django.contrib.sitemaps',
     'django.contrib.sites',
     'django.contrib.humanize',
-    'django_jasmine',
-    'django_nose',
     'django_libs',
     'currency_history',
 ]
@@ -62,7 +59,6 @@ INTERNAL_APPS = [
 ]
 
 INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS
-COVERAGE_MODULE_EXCLUDES += EXTERNAL_APPS
 
 SECRET_KEY = 'foobar'
 

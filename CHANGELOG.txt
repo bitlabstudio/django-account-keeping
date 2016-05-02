@@ -1,5 +1,6 @@
 === ongoing (0.2.X - to be released as 0.3) ===
 
+- Prepared app for Django 1.9 and Python 3.5
 - Bugfix: Fall back to old currency histories if there's no current one
 - Bugfix: Home view crashes when account is empty
 - Bugfix: Fixed Unicode bug in `Transaction.get_description`

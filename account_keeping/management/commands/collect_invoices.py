@@ -9,7 +9,7 @@ import shutil
 
 from django.core.management.base import BaseCommand
 
-from account_keeping import models
+from ... import models
 
 
 class Command(BaseCommand):

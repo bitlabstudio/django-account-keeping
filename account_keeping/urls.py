@@ -1,12 +1,10 @@
 """URLs for the account_keeping app."""
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
 
-urlpatterns = patterns(
-    '',
-
+urlpatterns = [
     url(r'all/$',
         views.AllTimeView.as_view(),
         name='account_keeping_all'),
@@ -30,4 +28,4 @@ urlpatterns = patterns(
     url(r'$',
         views.IndexView.as_view(),
         name='account_keeping_index'),
-)
+]

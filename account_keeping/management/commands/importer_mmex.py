@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from currency_history.models import Currency
 
-from account_keeping import models
+from ... import models
 
 
 class Command(BaseCommand):
@@ -78,7 +78,7 @@ class Command(BaseCommand):
 
                 invoice = models.Invoice.objects.create(
                     invoice_type=transaction_type,
-                    invoice_date=datetime.date(1900, 01, 01),
+                    invoice_date=datetime.date(1900, 1, 1),
                     currency=currency,
                     amount_gross=amount,
                     vat=vat,
