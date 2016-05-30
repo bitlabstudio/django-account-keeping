@@ -156,6 +156,8 @@ class Invoice(AmountMixin, models.Model):
 
     @property
     def balance(self):
+        if not self.transactions.all():
+            return 0 - self.amount_net
         return self.transactions.aggregate(
             models.Sum('amount_net'))['amount_net__sum'] - self.amount_net
 

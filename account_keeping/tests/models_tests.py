@@ -29,6 +29,13 @@ class InvoiceTestCase(TestCase):
         mixer.blend('account_keeping.Invoice')
         self.assertEqual(models.Invoice.objects.get_without_pdf().count(), 2)
 
+    def test_balance(self):
+        invoice = mixer.blend('account_keeping.Invoice', amount_net=100)
+        self.assertEqual(int(invoice.balance), -100)
+        mixer.blend('account_keeping.Transaction', amount_net=50,
+                    invoice=invoice)
+        self.assertEqual(int(invoice.balance), -50)
+
 
 class PayeeTestCase(TestCase):
     """Tests for the ``Payee`` model."""
