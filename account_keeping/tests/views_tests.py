@@ -164,3 +164,16 @@ class IndexViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
+
+
+class PayeeListViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``PayeeListView`` view class."""
+    view_class = views.PayeeListView
+
+    def setUp(self):
+        self.user = mixer.blend('auth.User', is_superuser=True)
+        mixer.blend('account_keeping.Transaction')
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.is_callable(self.user)

@@ -154,6 +154,11 @@ class Invoice(AmountMixin, models.Model):
         self.set_value_fields('invoice_type')
         return super(Invoice, self).save(*args, **kwargs)
 
+    @property
+    def balance(self):
+        return self.transactions.aggregate(
+            models.Sum('amount_net'))['amount_net__sum'] - self.amount_net
+
 
 @python_2_unicode_compatible
 class Payee(models.Model):
@@ -164,6 +169,10 @@ class Payee(models.Model):
 
     def __str__(self):
         return self.name
+
+    def invoices(self):
+        return Invoice.objects.filter(
+            pk__in=self.transactions.values_list('invoice__pk')).distinct()
 
 
 @python_2_unicode_compatible

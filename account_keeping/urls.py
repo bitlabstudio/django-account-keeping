@@ -5,6 +5,10 @@ from . import views
 
 
 urlpatterns = [
+    url(r'payees/$',
+        views.PayeeListView.as_view(),
+        name='account_keeping_payees'),
+
     url(r'all/$',
         views.AllTimeView.as_view(),
         name='account_keeping_all'),

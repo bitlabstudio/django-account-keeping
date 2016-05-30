@@ -13,8 +13,8 @@
         {% for value_dict in account_transactions %}
             <li><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }} ({{ value_dict.transactions.count }})</a></li>
         {% endfor %}
-        <li class="active"><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
-        <li><a href="#outstanding" data-toggle="tab">{% trans "Outstanding" %} ({{ outstanding_invoices.count }})</a></li>
+        <li><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
+        <li class="active"><a href="#outstanding" data-toggle="tab">{% trans "Outstanding" %} ({{ outstanding_invoices.count }})</a></li>
     </ul>
 
     <div class="tab-content">
@@ -59,7 +59,7 @@
             </div>
         {% endfor %}
 
-        <div class="tab-pane active" id="totals">
+        <div class="tab-pane" id="totals">
             <h2>{% trans "Total" %} ({{ base_currency }})</h2>
 
             <table class="table table-hover table-condensed small">
@@ -134,7 +134,7 @@
             </table>
         </div>
 
-        <div class="tab-pane" id="outstanding">
+        <div class="tab-pane active" id="outstanding">
             <h2>{% trans "Outstanding invoices" %} ({{ outstanding_invoices.count }})</h2>
             <a class="btn btn-primary btn-above-table" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
             {% include "account_keeping/partials/invoices_table.html" with invoices=outstanding_invoices %}

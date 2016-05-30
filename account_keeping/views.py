@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
-from django.views.generic import TemplateView, View
+from django.views.generic import ListView, TemplateView, View
 
 from currency_history.models import Currency, CurrencyRateHistory
 from dateutil import relativedelta
@@ -631,3 +631,15 @@ class YearOverviewView(TemplateView):
             rate__to_currency__iso_code=getattr(
                 settings, 'BASE_CURRENCY', 'EUR'),
         )[0].value)
+
+
+class PayeeListView(ListView):
+    model = models.Payee
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(PayeeListView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PayeeListView, self).get_context_data(**kwargs)
+        return context

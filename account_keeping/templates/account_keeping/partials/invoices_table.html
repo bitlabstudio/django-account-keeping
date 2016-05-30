@@ -11,6 +11,7 @@
             <th>{% trans "Amount (net)" %}</th>
             <th>{% trans "VAT" %}</th>
             <th>{% trans "Amount (gross)" %}</th>
+            <th>{% trans "Balance" %}</th>
             <th>{% trans "Transactions" %}</th>
         </tr>
     </thead>
@@ -26,10 +27,10 @@
                 <td>{{ invoice.amount_net|currency }}</td>
                 <td>{{ invoice.vat }}</td>
                 <td>{{ invoice.amount_gross|currency }}</td>
+                <td><span class="text-{% if invoice.balance >= 0 %}success{% else %}danger{% endif %}">{{ invoice.balance|currency }}</span></td>
                 <td>
                     {% for transaction in invoice.transactions.all %}
-                        <a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a>
-                        {% if not forloop.last %}, {% endif %}
+                        <a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </td>
             </tr>

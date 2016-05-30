@@ -3,7 +3,7 @@ import locale
 from django import template
 from django.utils.timezone import datetime
 
-locale.setlocale(locale.LC_ALL, '')
+locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
 register = template.Library()
 
 

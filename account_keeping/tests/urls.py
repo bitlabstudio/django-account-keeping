@@ -7,5 +7,5 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounting/', include('account_keeping.urls')),
+    url(r'^', include('account_keeping.urls')),
 ]
