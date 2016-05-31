@@ -14,8 +14,8 @@
         <tr>
           <td>{{ payee }}</td>
           <td>
-            <a data-toggle="collapse" href="#collapse" aria-expanded="false" aria-controls="collapse">{{ payee.invoices.count }}</a>
-            <div class="collapse" id="collapse">
+            <a data-toggle="collapse" href="#collapse{{ payee.pk }}" aria-expanded="false" aria-controls="collapse">{{ payee.invoices.count }}</a>
+            <div class="collapse" id="collapse{{ payee.pk }}">
               <ul class="list-group">
                 {% for invoice in payee.invoices.all %}
                   <li class="list-group-item">
