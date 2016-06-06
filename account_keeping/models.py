@@ -9,6 +9,8 @@ from decimal import Decimal
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+from currency_history.models import Currency, CurrencyRateHistory
+
 
 class AmountMixin(object):
     """
@@ -158,8 +160,25 @@ class Invoice(AmountMixin, models.Model):
     def balance(self):
         if not self.transactions.all():
             return 0 - self.amount_net
-        return self.transactions.aggregate(
-            models.Sum('amount_net'))['amount_net__sum'] - self.amount_net
+
+        total = 0
+        # Convert amounts
+        for currency in Currency.objects.all():
+            # Get transactions for each currency
+            transactions = self.transactions.filter(currency=currency)
+            if not transactions:
+                continue
+
+            if currency == self.currency:
+                rate = 1
+            else:
+                rate = Decimal(CurrencyRateHistory.objects.filter(
+                    rate__from_currency=currency,
+                    rate__to_currency=self.currency,
+                )[0].value)
+            total += rate * transactions.aggregate(
+                models.Sum('amount_net'))['amount_net__sum']
+        return total - self.amount_net
 
 
 @python_2_unicode_compatible

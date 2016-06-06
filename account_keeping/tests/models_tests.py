@@ -21,8 +21,11 @@ class AccountTestCase(TestCase):
 class InvoiceTestCase(TestCase):
     """Tests for the ``Invoice`` model."""
     def test_model(self):
-        obj = mixer.blend('account_keeping.Invoice')
+        obj = mixer.blend('account_keeping.Invoice', invoice_number='')
         self.assertTrue(str(obj))
+        obj.invoice_number = 'Foo123'
+        obj.save()
+        self.assertEqual(str(obj), 'Foo123')
 
     def test_manager(self):
         mixer.blend('account_keeping.Invoice')
@@ -32,16 +35,26 @@ class InvoiceTestCase(TestCase):
     def test_balance(self):
         invoice = mixer.blend('account_keeping.Invoice', amount_net=100)
         self.assertEqual(int(invoice.balance), -100)
-        mixer.blend('account_keeping.Transaction', amount_net=50,
-                    invoice=invoice)
-        self.assertEqual(int(invoice.balance), -50)
+        mixer.blend('account_keeping.Transaction', amount_net=10,
+                    invoice=invoice, currency=invoice.currency)
+        transaction = mixer.blend('account_keeping.Transaction', amount_net=50,
+                                  invoice=invoice)
+        mixer.blend('currency_history.CurrencyRateHistory', value=0.5,
+                    rate__from_currency=transaction.currency,
+                    rate__to_currency=invoice.currency)
+        self.assertEqual(int(invoice.balance), -65)
 
 
 class PayeeTestCase(TestCase):
     """Tests for the ``Payee`` model."""
+    def setUp(self):
+        self.payee = mixer.blend('account_keeping.Payee')
+
     def test_model(self):
-        obj = mixer.blend('account_keeping.Payee')
-        self.assertTrue(str(obj))
+        self.assertTrue(str(self.payee))
+
+    def test_invoices(self):
+        self.assertEqual(self.payee.invoices().count(), 0)
 
 
 class CategoryTestCase(TestCase):
@@ -55,9 +68,17 @@ class TransactionTestCase(TestCase):
     """Tests for the ``Transaction`` model."""
     longMessage = True
 
+    def setUp(self):
+        self.transaction = mixer.blend('account_keeping.Transaction',
+                                       invoice_number='')
+
     def test_model(self):
-        obj = mixer.blend('account_keeping.Transaction')
-        self.assertTrue(str(obj))
+        self.assertTrue(str(self.transaction))
+        self.transaction.invoice = mixer.blend('account_keeping.Invoice')
+        self.assertEqual(str(self.transaction),
+                         self.transaction.invoice.invoice_number)
+        self.transaction.invoice_number = 'Foo123'
+        self.assertEqual(str(self.transaction), 'Foo123')
 
     def test_save(self):
         obj = mixer.blend(
@@ -182,4 +203,4 @@ class TransactionTestCase(TestCase):
             models.Transaction.objects.current_balance(trans.account), 0)
 
         self.assertEqual(
-            models.Transaction.objects.get_without_invoice().count(), 1)
+            models.Transaction.objects.get_without_invoice().count(), 2)
