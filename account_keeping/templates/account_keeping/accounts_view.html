@@ -136,9 +136,9 @@
 
         <div class="tab-pane active" id="outstanding">
             <h2>{% trans "Outstanding invoices" %} ({{ outstanding_invoices.count }})</h2>
-            <a class="btn btn-primary btn-above-table" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
+            <a class="btn btn-primary btn-above-table" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
             {% include "account_keeping/partials/invoices_table.html" with invoices=outstanding_invoices %}
-            <a class="btn btn-primary" href="{% url "admin:account_keeping_invoice_add" %}">{% trans "Add new invoice" %}</a>
+            <a class="btn btn-primary" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
         </div>
     </div>
 </div>

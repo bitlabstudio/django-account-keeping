@@ -177,3 +177,24 @@ class PayeeListViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
+
+
+class InvoiceCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``InvoiceCreateView`` view class."""
+    view_class = views.InvoiceCreateView
+
+    def setUp(self):
+        self.user = mixer.blend('auth.User', is_superuser=True)
+
+    def test_view(self):
+        self.is_callable(self.user)
+        self.is_postable(self.user, data={
+            'invoice_type': 'd',
+            'invoice_date': '2016-01-01',
+            'currency': mixer.blend('currency_history.Currency').pk,
+            'amount_net': 0,
+            'amount_gross': 0,
+            'vat': 0,
+            'value_net': 0,
+            'value_gross': 0,
+        }, to_url_name='account_keeping_month')

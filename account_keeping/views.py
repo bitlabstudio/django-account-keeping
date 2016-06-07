@@ -4,17 +4,19 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.db import connection
 from django.db.models import Q, Sum
 from django.shortcuts import redirect
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
-from django.views.generic import ListView, TemplateView, View
+from django.views import generic
 
 from currency_history.models import Currency, CurrencyRateHistory
 from dateutil import relativedelta
 
+from . import forms
 from . import models
 from . import utils
 # from .freckle_api import get_unpaid_invoices_with_transactions
@@ -23,6 +25,13 @@ from .utils import get_date as d
 
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
+
+
+class LoginRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(
+            request, *args, **kwargs)
 
 
 class AccountsViewMixin(object):
@@ -214,7 +223,7 @@ class AccountsViewMixin(object):
         raise NotImplementedError('Method not implemented')  # pragma: no cover
 
 
-class AllTimeView(AccountsViewMixin, TemplateView):
+class AllTimeView(AccountsViewMixin, generic.TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         self.month = date(date.today().year, date.today().month, 1)
@@ -242,7 +251,7 @@ class AllTimeView(AccountsViewMixin, TemplateView):
         )
 
 
-class CurrentMonthRedirectView(View):
+class CurrentMonthRedirectView(generic.View):
     """Redirects to the ``MonthOverviewView`` for the current month."""
     def dispatch(self, request, *args, **kwargs):
         now_ = now()
@@ -250,20 +259,16 @@ class CurrentMonthRedirectView(View):
             'account_keeping_month', year=now_.year, month=now_.month)
 
 
-class CurrentYearRedirectView(View):
+class CurrentYearRedirectView(generic.View):
     """Redirects to the ``MonthView`` for the current year."""
     def dispatch(self, request, *args, **kwargs):
         now_ = now()
         return redirect('account_keeping_year', year=now_.year)
 
 
-class IndexView(TemplateView):
+class IndexView(LoginRequiredMixin, generic.TemplateView):
     """View that shows the main menu for the accounting app."""
     template_name = 'account_keeping/index_view.html'
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(IndexView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super(IndexView, self).get_context_data(**kwargs)
@@ -294,7 +299,7 @@ class IndexView(TemplateView):
         return ctx
 
 
-class MonthView(AccountsViewMixin, TemplateView):
+class MonthView(AccountsViewMixin, generic.TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         self.month = date(int(kwargs.get('year')), int(kwargs.get('month')), 1)
@@ -350,7 +355,7 @@ class MonthView(AccountsViewMixin, TemplateView):
         )
 
 
-class YearOverviewView(TemplateView):
+class YearOverviewView(generic.TemplateView):
     template_name = 'account_keeping/year_view.html'
 
     @method_decorator(login_required)
@@ -633,13 +638,17 @@ class YearOverviewView(TemplateView):
         )[0].value)
 
 
-class PayeeListView(ListView):
+class PayeeListView(LoginRequiredMixin, generic.ListView):
     model = models.Payee
 
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(PayeeListView, self).dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super(PayeeListView, self).get_context_data(**kwargs)
-        return context
+class InvoiceCreateView(LoginRequiredMixin, generic.CreateView):
+    form_class = forms.InvoiceForm
+    template_name = 'account_keeping/invoice_form.html'
+    initial = {'invoice_date': now()}
+
+    def get_success_url(self):
+        return reverse('account_keeping_month', kwargs={
+            'year': self.object.invoice_date.year,
+            'month': self.object.invoice_date.month,
+        })

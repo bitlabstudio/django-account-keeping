@@ -1,0 +1,16 @@
+{% extends "account_keeping/base.html" %}
+{% load i18n account_keeping_tags %}
+
+{% block main %}
+  <div class="container">
+    <h1 class="text-center">{% trans "Invoice" %}</h1>
+    <div class="row">
+      <div class="col-sm-offset-3 col-sm-6">
+        <form action="." method="post">
+          {% include "django_libs/partials/form.html" %}
+          <button type="submit" class="btn btn-primary">{% trans "Create invoice" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

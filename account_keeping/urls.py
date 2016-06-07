@@ -5,6 +5,10 @@ from . import views
 
 
 urlpatterns = [
+    url(r'invoice/create/$',
+        views.InvoiceCreateView.as_view(),
+        name='account_keeping_invoice_create'),
+
     url(r'payees/$',
         views.PayeeListView.as_view(),
         name='account_keeping_payees'),
