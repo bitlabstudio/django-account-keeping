@@ -2,144 +2,154 @@
 {% load account_keeping_tags humanize i18n libs_tags %}
 
 {% block main %}
-<div class="container">
+  <div class="container">
     <h1>
-        {{ view_name }}
-        {% if last_month %}<a class="small" href="{% url "account_keeping_month" year=last_month.year month=last_month.month %}"><span class="glyphicon glyphicon-chevron-left"></span></a>{% endif %}
-        {% if next_month %}<a class="small" href="{% url "account_keeping_month" year=next_month.year month=next_month.month %}"><span class="glyphicon glyphicon-chevron-right"></span></a>{% endif %}
+      {{ view_name }}
+      {% if last_month %}<a class="small" href="{% url "account_keeping_month" year=last_month.year month=last_month.month %}"><span class="glyphicon glyphicon-chevron-left"></span></a>{% endif %}
+      {% if next_month %}<a class="small" href="{% url "account_keeping_month" year=next_month.year month=next_month.month %}"><span class="glyphicon glyphicon-chevron-right"></span></a>{% endif %}
     </h1>
 
     <ul class="nav nav-tabs">
-        {% for value_dict in account_transactions %}
-            <li><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }} ({{ value_dict.transactions.count }})</a></li>
-        {% endfor %}
-        <li><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
-        <li class="active"><a href="#outstanding" data-toggle="tab">{% trans "Outstanding" %} ({{ outstanding_invoices.count }})</a></li>
+      {% for value_dict in account_transactions %}
+        <li><a href="#{{ value_dict.account.slug }}" data-toggle="tab">{{ value_dict.account.name }} ({{ value_dict.transactions.count }})</a></li>
+      {% endfor %}
+      <li><a href="#totals" data-toggle="tab">{% trans "Totals" %}</a></li>
+      <li class="active"><a href="#outstanding" data-toggle="tab">{% trans "Outstanding" %} ({{ outstanding_invoices.count }})</a></li>
     </ul>
 
     <div class="tab-content">
-        {% for value_dict in account_transactions %}
-            <div class="tab-pane" id="{{ value_dict.account.slug }}">
-                <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
-                <a class="btn btn-primary btn-above-table" href="{% url "account_keeping_transaction_create" %}">{% trans "Add new transaction" %}</a>
-                <table class="table table-hover table-condensed small">
-                    {% include "account_keeping/partials/transactions_table_head.html" with show_balance=1 %}
-                    <tbody>
-                        {% save "BALANCE" value_dict.account_balance %}
-                        <tr>
-                            <td colspan="7"><strong>{% trans "Income total" %}</strong></td>
-                            <td><strong>{{ value_dict.income_net_total|currency }}</strong></td>
-                            <td></td>
-                            <td><strong>{{ value_dict.income_gross_total|currency }}</strong></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td colspan="7"><strong>{% trans "Expenses total" %}</strong></td>
-                            <td><strong>{{ value_dict.expenses_net_total|currency }}</strong></td>
-                            <td></td>
-                            <td><strong>{{ value_dict.expenses_gross_total|currency }}</strong></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td colspan="7"><strong>{% trans "Profit total" %}</strong></td>
-                            <td><strong>{{ value_dict.amount_net_total|currency }}</strong></td>
-                            <td></td>
-                            <td><strong>{{ value_dict.amount_gross_total|currency }}</strong></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td colspan="10"><strong>{% trans "Current balance" %}</strong></td>
-                            <td>{{ BALANCE }}</td>
-                        </tr>
-                        {% save "BALANCE" value_dict.account_balance %}
-                        {% include "account_keeping/partials/transactions_table_body.html" with show_balance=1 transactions=value_dict.transactions %}
-                    </tbody>
-                </table>
-                <a class="btn btn-primary" href="{% url "account_keeping_transaction_create" %}">{% trans "Add new transaction" %}</a>
+      {% for value_dict in account_transactions %}
+        <div class="tab-pane" id="{{ value_dict.account.slug }}">
+          <h2>{{ value_dict.account.name }} ({{ value_dict.account.currency.iso_code }})</h2>
+          <a class="btn btn-primary btn-above-table" href="{% url "account_keeping_transaction_create" %}">{% trans "Add new transaction" %}</a>
+          {% save "BALANCE" value_dict.account_balance %}
+          <div class="row">
+            <div class="col-sm-7">
+              <table class="table table-condensed">
+                <thead>
+                <tr>
+                  <th></th>
+                  <th>{% trans "net" %}</th>
+                  <th>{% trans "gross" %}</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                  <td><strong>{% trans "Income total" %}</strong></td>
+                  <td>{{ value_dict.income_net_total|currency:value_dict.account.currency }}</td>
+                  <td>{{ value_dict.income_gross_total|currency:value_dict.account.currency }}</td>
+                </tr>
+                <tr>
+                  <td><strong>{% trans "Expenses total" %}</strong></td>
+                  <td>{{ value_dict.expenses_net_total|currency:value_dict.account.currency }}</td>
+                  <td>{{ value_dict.expenses_gross_total|currency:value_dict.account.currency }}</td>
+                </tr>
+                <tr>
+                  <td><strong>{% trans "Profit total" %}</strong></td>
+                  <td>{{ value_dict.amount_net_total|currency:value_dict.account.currency }}</td>
+                  <td>{{ value_dict.amount_gross_total|currency:value_dict.account.currency }}</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
-        {% endfor %}
+            <div class="col-sm-5 text-right">
+              <p class="lead" style="margin-bottom: 0;">{% trans "Current balance" %}</p>
+              <h2 style="margin-top: 0;">{{ BALANCE|currency:value_dict.account.currency }}</h2>
+            </div>
+          </div>
 
-        <div class="tab-pane" id="totals">
-            <h2>{% trans "Total" %} ({{ base_currency }})</h2>
-
-            <table class="table table-hover table-condensed small">
-                <thead>
-                    <tr>
-                        <th>{% trans "Account" %}</th>
-                        <th>{% trans "Expenses (net)" %}</th>
-                        <th>{% trans "Expenses (gross)" %}</th>
-                        <th>{% trans "Income (net)" %}</th>
-                        <th>{% trans "Income (gross)" %}</th>
-                        <th>{% trans "Profit (net)" %}</th>
-                        <th>{% trans "Profit (gross)" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for value_dict in account_transactions %}
-                        <tr>
-                            <td>{{ value_dict.account.name }}</td>
-                            <td>{{ value_dict.expenses_net_sum_base|currency }}</td>
-                            <td>{{ value_dict.expenses_gross_sum_base|currency }}</td>
-                            <td>{{ value_dict.income_net_sum_base|currency }}</td>
-                            <td>{{ value_dict.income_gross_sum_base|currency }}</td>
-                            <td>{{ value_dict.amount_net_sum_base|currency }}</td>
-                            <td>{{ value_dict.amount_gross_sum_base|currency }}</td>
-                        </tr>
-                    {% endfor %}
-                    <tr>
-                        <td><strong>{% trans "Total" %}</strong></td>
-                        <td><strong>{{ totals.expenses_net|currency }}</strong></td>
-                        <td><strong>{{ totals.expenses_gross|currency }}</strong></td>
-                        <td><strong>{{ totals.income_net|currency }}</strong></td>
-                        <td><strong>{{ totals.income_gross|currency }}</strong></td>
-                        <td><strong>{{ totals.amount_net|currency }}</strong></td>
-                        <td><strong>{{ totals.amount_gross|currency }}</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>{% trans "Outstanding total" %} (CCY / {{ base_currency }})</h2>
-
-            <table class="table table-hover table-condensed small">
-                <thead>
-                    <tr>
-                        <th>{% trans "Currency" %}</th>
-                        <th>{% trans "Expenses (gross)" %}</th>
-                        <th>{% trans "Income (gross)" %}</th>
-                        <th>{% trans "Profit (gross)" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for currency, ccy_totals in outstanding_ccy_totals.items %}
-                        <tr>
-                            <th>{{ currency.iso_code }}</th>
-                            <th>
-                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.expenses_gross base_amount=ccy_totals.expenses_gross_base %}
-                            </th>
-                            <th>
-                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.income_gross base_amount=ccy_totals.income_gross_base %}
-                            </th>
-                            <th>
-                                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.profit_gross base_amount=ccy_totals.profit_gross_base %}
-                            </th>
-                        </tr>
-                    {% endfor %}
-                    <tr>
-                        <th><strong>{% trans "Total" %} ({{ base_currency.iso_code }})</strong></th>
-                        <th>{{ totals.outstanding_expenses_gross|currency }}</th>
-                        <th>{{ totals.outstanding_income_gross|currency }}</th>
-                        <th>{{ totals.outstanding_profit_gross|currency }}</th>
-                    </tr>
-                </tbody>
-            </table>
+          <table class="table table-condensed">
+            {% include "account_keeping/partials/transactions_table_head.html" with show_balance=1 %}
+            <tbody>
+            {% include "account_keeping/partials/transactions_table_body.html" with show_balance=1 transactions=value_dict.transactions %}
+            </tbody>
+          </table>
+          <a class="btn btn-primary" href="{% url "account_keeping_transaction_create" %}">{% trans "Add new transaction" %}</a>
         </div>
+      {% endfor %}
 
-        <div class="tab-pane active" id="outstanding">
-            <h2>{% trans "Outstanding invoices" %} ({{ outstanding_invoices.count }})</h2>
-            <a class="btn btn-primary btn-above-table" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
-            {% include "account_keeping/partials/invoices_table.html" with invoices=outstanding_invoices %}
-            <a class="btn btn-primary" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
-        </div>
+      <div class="tab-pane" id="totals">
+        <h2>{% trans "Total" %} ({{ base_currency }})</h2>
+
+        <table class="table table-hover table-condensed small">
+          <thead>
+          <tr>
+            <th>{% trans "Account" %}</th>
+            <th>{% trans "Expenses (net)" %}</th>
+            <th>{% trans "Expenses (gross)" %}</th>
+            <th>{% trans "Income (net)" %}</th>
+            <th>{% trans "Income (gross)" %}</th>
+            <th>{% trans "Profit (net)" %}</th>
+            <th>{% trans "Profit (gross)" %}</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for value_dict in account_transactions %}
+            <tr>
+              <td>{{ value_dict.account.name }}</td>
+              <td>{{ value_dict.expenses_net_sum_base|currency:value_dict.account.currency }}</td>
+              <td>{{ value_dict.expenses_gross_sum_base|currency:value_dict.account.currency }}</td>
+              <td>{{ value_dict.income_net_sum_base|currency:value_dict.account.currency }}</td>
+              <td>{{ value_dict.income_gross_sum_base|currency:value_dict.account.currency }}</td>
+              <td>{{ value_dict.amount_net_sum_base|currency:value_dict.account.currency }}</td>
+              <td>{{ value_dict.amount_gross_sum_base|currency:value_dict.account.currency }}</td>
+            </tr>
+          {% endfor %}
+          <tr>
+            <td><strong>{% trans "Total" %}</strong></td>
+            <td><strong>{{ totals.expenses_net|currency }}</strong></td>
+            <td><strong>{{ totals.expenses_gross|currency }}</strong></td>
+            <td><strong>{{ totals.income_net|currency }}</strong></td>
+            <td><strong>{{ totals.income_gross|currency }}</strong></td>
+            <td><strong>{{ totals.amount_net|currency }}</strong></td>
+            <td><strong>{{ totals.amount_gross|currency }}</strong></td>
+          </tr>
+          </tbody>
+        </table>
+
+        <h2>{% trans "Outstanding total" %} (CCY / {{ base_currency }})</h2>
+
+        <table class="table table-hover table-condensed small">
+          <thead>
+          <tr>
+            <th>{% trans "Currency" %}</th>
+            <th>{% trans "Expenses (gross)" %}</th>
+            <th>{% trans "Income (gross)" %}</th>
+            <th>{% trans "Profit (gross)" %}</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for currency, ccy_totals in outstanding_ccy_totals.items %}
+            <tr>
+              <th>{{ currency.iso_code }}</th>
+              <th>
+                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.expenses_gross base_amount=ccy_totals.expenses_gross_base %}
+              </th>
+              <th>
+                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.income_gross base_amount=ccy_totals.income_gross_base %}
+              </th>
+              <th>
+                {% include "account_keeping/partials/currency_base_pair.html" with amount=ccy_totals.profit_gross base_amount=ccy_totals.profit_gross_base %}
+              </th>
+            </tr>
+          {% endfor %}
+          <tr>
+            <th><strong>{% trans "Total" %} ({{ base_currency.iso_code }})</strong></th>
+            <th>{{ totals.outstanding_expenses_gross|currency }}</th>
+            <th>{{ totals.outstanding_income_gross|currency }}</th>
+            <th>{{ totals.outstanding_profit_gross|currency }}</th>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tab-pane active" id="outstanding">
+        <h2>{% trans "Outstanding invoices" %} ({{ outstanding_invoices.count }})</h2>
+        <a class="btn btn-primary btn-above-table" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
+        {% include "account_keeping/partials/invoices_table.html" with invoices=outstanding_invoices %}
+        <a class="btn btn-primary" href="{% url "account_keeping_invoice_create" %}">{% trans "Add new invoice" %}</a>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

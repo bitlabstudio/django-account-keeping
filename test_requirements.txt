@@ -5,3 +5,5 @@ flake8
 ipdb
 tox
 mixer
+python-freckle-client
+mock

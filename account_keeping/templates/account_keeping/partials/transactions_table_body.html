@@ -24,11 +24,11 @@
         <td><a href="{% url "admin:account_keeping_payee_change" transaction.payee.pk %}">{{ transaction.payee }}</a></td>
         <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
         <td>{% if transaction.transaction_type == 'w' %}{% trans "DR" %}{% else %}{% trans "CR" %}{% endif %}</td>
-        <td>{{ transaction.amount_net|currency }}</td>
+        <td>{{ transaction.amount_net|currency:transaction.currency }}</td>
         <td>{{ transaction.vat }}</td>
-        <td>{{ transaction.amount_gross|currency }}</td>
+        <td>{{ transaction.amount_gross|currency:transaction.currency }}</td>
         {% if show_balance %}
-            <td>{{ BALANCE|currency }}</td>
+            <td>{{ BALANCE|currency:transaction.currency }}</td>
             {% sum "BALANCE" transaction.value_gross multiplier=-1 %}
         {% endif %}
     </tr>

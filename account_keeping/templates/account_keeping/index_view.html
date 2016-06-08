@@ -5,10 +5,6 @@
 <div class="container">
     <h1>{% trans "Welcome to Django Account Keeping" %}</h1>
     <p>{% trans "Click at one of the main navigation items to start. Soon we will show the most important current stats on this page." %}</p>
-    {% for account, stats in accounts_stats.items %}
-        <h2>{{ account.name }} ({{ account.currency }})</h2>
-        <p class="well"><strong>Current balance:</strong> {{ stats.balance_gross }}</p>
-    {% endfor %}
 
     {% if transactions_without_invoice %}
         <h2>{% trans "Transactions without invoice" %}</h2>
@@ -20,11 +16,9 @@
         {% include "account_keeping/partials/invoices_table.html" with invoices=invoices_without_pdf %}
     {% endif %}
 
-    {% if unpaid_invoices_with_transactions %}
-        <h2>{% trans "Unpaid Freckle invoices with transactions" %}</h2>
-        {% for invoice in unpaid_invoices_with_transactions %}
-            {{ invoice }}
-        {% endfor %}
+    {% if get_unpaid_invoices_with_transactions %}
+        <h2>{% trans "Unpaid invoices in Freckle" %}</h2>
+        {% include "account_keeping/partials/invoices_table.html" with invoices=get_unpaid_invoices_with_transactions %}
     {% endif %}
 </div>
 {% endblock %}

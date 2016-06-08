@@ -4,12 +4,14 @@ Models for the account_keeping app.
 TODO: Add lazy_trans and docstrings
 
 """
+from datetime import date
 from decimal import Decimal
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 from currency_history.models import Currency, CurrencyRateHistory
+from dateutil import relativedelta
 
 
 class AmountMixin(object):
@@ -67,6 +69,21 @@ class Account(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_balance(self, month=None):
+        """
+        Returns the balance up until now or until the provided month.
+
+        """
+        if not month:
+            month = date(date.today().year, date.today().month, 1)
+        next_month = month + relativedelta.relativedelta(months=1)
+        account_balance = self.transactions.filter(
+            parent__isnull=True,
+            transaction_date__lt=next_month,
+        ).aggregate(models.Sum('value_gross'))['value_gross__sum'] or 0
+        account_balance = account_balance + self.initial_amount
+        return account_balance
 
 
 class InvoiceManager(models.Manager):
@@ -210,18 +227,6 @@ class Category(models.Model):
 
 class TransactionManager(models.Manager):
     """Manager for the ``Transaction`` model."""
-    def current_balance(self, account):
-        """
-        Returns the total current balance for the given account.
-
-        :param account: An ``Account`` instance.
-
-        """
-        qs = Transaction.objects.filter(account=account, parent__isnull=True)
-        qs = qs.aggregate(models.Sum('value_gross'))
-        value_gross = qs['value_gross__sum'] or 0
-        return value_gross + account.initial_amount
-
     def get_totals_by_payee(self, account, start_date=None, end_date=None):
         """
         Returns transaction totals grouped by Payee.

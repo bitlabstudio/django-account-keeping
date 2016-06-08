@@ -38,7 +38,7 @@ class Command(BaseCommand):
         self.counter = 1
 
     def copy_file(self, transaction):
-        if transaction.invoice and transaction.invoice.pdf:
+        if transaction.invoice and transaction.invoice.pdf:  # pragma: nocover
             counter = str(self.counter).zfill(4)
             filename = '{0}.pdf'.format(counter)
             shutil.copy(

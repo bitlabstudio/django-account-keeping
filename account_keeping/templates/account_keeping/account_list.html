@@ -1,0 +1,40 @@
+{% extends "account_keeping/base.html" %}
+{% load i18n account_keeping_tags %}
+
+{% block main %}
+  <div class="container">
+    <h1>{% trans "Accounts" %}</h1>
+    <table class="table">
+      <tr>
+        <th>{% trans "Accounts" %}</th>
+        <th>{% trans "Balance" %}</th>
+        <th>{% trans "Transactions" %}</th>
+      </tr>
+      {% for account in object_list %}
+        <tr>
+          <td>{{ account.name }}</td>
+          <td>{{ account.get_balance|currency:account.currency }}</td>
+          <td>
+            <a class="btn btn-default" data-toggle="collapse" href="#collapse{{ account.pk }}" aria-expanded="false" aria-controls="collapse{{ account.pk }}">{{ account.transactions.count }}</a>
+            <div style="margin-top: 20px;" class="collapse" id="collapse{{ account.pk }}">
+              <table class="table">
+                <tbody>
+                  {% for transaction in account.transactions.all %}
+                    <tr>
+                      <td>
+                        <a href="{% url "account_keeping_transaction_update" pk=transaction.pk %}">{{ transaction }}</a>
+                      </td>
+                      <td>{{ transaction.transaction_date|date }}</td>
+                      <td>{{ transaction.value_net|currency:transaction.currency }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}

@@ -1,26 +1,40 @@
-{% load account_keeping_tags %}
+{% load account_keeping_tags libs_tags %}
 <div class="container">
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/accounting/">Bitmazk Accounting</a>
-            </div>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-accounting">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="{% url "account_keeping_index" %}">Bitmazk Accounting</a>
+      </div>
 
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="{% url "account_keeping_index" %}">Home</a></li>
-                    <li><a href="{% url "account_keeping_payees" %}">Payees</a></li>
-                    <li><a href="{% url "account_keeping_current_month" %}">Current month</a></li>
-                    <li><a href="{% url "account_keeping_current_year" %}" >Current year</a></li>
-                    <li><a href="{% url "account_keeping_all" %}">All time</a></li>
-                </ul>
-            </div><!-- /.navbar-collapse -->
-        </div><!-- /.container-fluid -->
-    </nav>
+      <div class="collapse navbar-collapse" id="navbar-accounting">
+        <ul class="nav navbar-nav">
+          {% url "account_keeping_current_month" as month_url %}
+          <li class="{% navactive request month_url %}"><a href="{{ month_url }}">Current month</a></li>
+          {% url "account_keeping_current_year" as year_url %}
+          <li class="{% navactive request year_url %}"><a href="{{ year_url }}" >Current year</a></li>
+          {% url "account_keeping_all" as all_url %}
+          <li class="{% navactive request all_url %}"><a href="{{ all_url }}">All time</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Statistics <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              {% url "account_keeping_payees" as payees_url %}
+              <li class="{% navactive request payees_url %}">
+                <a href="{{ payees_url }}">Payees</a>
+              </li>
+              {% url "account_keeping_accounts" as accounts_url %}
+              <li class="{% navactive request accounts_url %}">
+                <a href="{{ accounts_url }}">Accounts</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
 </div>

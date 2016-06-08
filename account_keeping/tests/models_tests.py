@@ -13,9 +13,14 @@ DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 
 class AccountTestCase(TestCase):
     """Tests for the ``Account`` model."""
+    def setUp(self):
+        self.account = mixer.blend('account_keeping.Account')
+
     def test_model(self):
-        obj = mixer.blend('account_keeping.Account')
-        self.assertTrue(str(obj))
+        self.assertTrue(str(self.account))
+
+    def test_get_balance(self):
+        self.assertEqual(self.account.get_balance(), 0)
 
 
 class InvoiceTestCase(TestCase):
@@ -198,9 +203,5 @@ class TransactionTestCase(TestCase):
             'Should return all transactions grouped by payee'))
 
     def test_manager(self):
-        trans = mixer.blend('account_keeping.Transaction')
         self.assertEqual(
-            models.Transaction.objects.current_balance(trans.account), 0)
-
-        self.assertEqual(
-            models.Transaction.objects.get_without_invoice().count(), 2)
+            models.Transaction.objects.get_without_invoice().count(), 1)

@@ -19,8 +19,7 @@ from dateutil import relativedelta
 from . import forms
 from . import models
 from . import utils
-# from .freckle_api import get_unpaid_invoices_with_transactions
-from .utils import get_date as d
+from utils import get_date as d
 
 
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
@@ -41,20 +40,6 @@ class AccountsViewMixin(object):
     """
     template_name = 'account_keeping/accounts_view.html'
 
-    def get_account_balance(self, account):
-        """
-        Returns the balance up until the last transaction BEFORE this view.
-
-        """
-        next_month = self.month + relativedelta.relativedelta(months=1)
-        account_balance = models.Transaction.objects.filter(
-            account=account,
-            parent__isnull=True,
-            transaction_date__lt=next_month,
-        ).aggregate(Sum('value_gross'))['value_gross__sum'] or 0
-        account_balance = account_balance + account.initial_amount
-        return account_balance
-
     def get_context_data(self, **kwargs):
         ctx = super(AccountsViewMixin, self).get_context_data(**kwargs)
         accounts = models.Account.objects.all()
@@ -73,7 +58,7 @@ class AccountsViewMixin(object):
             if not account.currency.iso_code == base_currency:
                 rate = self.get_rate(account.currency)
 
-            account_balance = self.get_account_balance(account)
+            account_balance = account.get_balance(self.month)
 
             qs = self.get_transactions(account)
 
@@ -272,29 +257,11 @@ class IndexView(LoginRequiredMixin, generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(IndexView, self).get_context_data(**kwargs)
-        accounts = models.Account.objects.all()
-        accounts_stats = {}
-        for account in accounts:
-            accounts_stats[account] = {}
-            accounts_stats[account]['balance_gross'] = \
-                models.Transaction.objects.current_balance(account)
-
-        invoices_without_pdf = \
-            models.Invoice.objects.get_without_pdf()
-
-        transactions_without_invoice = \
-            models.Transaction.objects.get_without_invoice()
-
-        # unpaid_invoices_with_transactions = \
-        #     get_unpaid_invoices_with_transactions()
-
         ctx.update({
-            'accounts_stats': accounts_stats,
-            'invoices_without_pdf': invoices_without_pdf,
-            'transactions_without_invoice': transactions_without_invoice,
+            'invoices_without_pdf': models.Invoice.objects.get_without_pdf(),
+            'transactions_without_invoice':
+                models.Transaction.objects.get_without_invoice(),
             'transaction_types': models.Transaction.TRANSACTION_TYPES,
-            # 'unpaid_invoices_with_transactions':
-            #     unpaid_invoices_with_transactions,
         })
         return ctx
 
@@ -576,7 +543,7 @@ class YearOverviewView(generic.TemplateView):
         for month in months:
             try:
                 new_total_total += new_total[month]
-            except KeyError:
+            except KeyError:  # pragma: nocover
                 break
         new_average = new_total_total / past_months_of_year
 
@@ -630,22 +597,18 @@ class YearOverviewView(generic.TemplateView):
         })
         return ctx
 
-    def get_rate(self, currency):
-        return decimal.Decimal(CurrencyRateHistory.objects.filter(
-            rate__from_currency=currency,
-            rate__to_currency__iso_code=getattr(
-                settings, 'BASE_CURRENCY', 'EUR'),
-        )[0].value)
-
 
 class PayeeListView(LoginRequiredMixin, generic.ListView):
     model = models.Payee
 
 
+class AccountListView(LoginRequiredMixin, generic.ListView):
+    model = models.Account
+
+
 class InvoiceMixin(object):
     model = models.Invoice
     form_class = forms.InvoiceForm
-    initial = {'invoice_date': now()}
 
     def get_success_url(self):
         return reverse('account_keeping_month', kwargs={
@@ -655,7 +618,7 @@ class InvoiceMixin(object):
 
 
 class InvoiceCreateView(InvoiceMixin, LoginRequiredMixin, generic.CreateView):
-    pass
+    initial = {'invoice_date': now()}
 
 
 class InvoiceUpdateView(InvoiceMixin, LoginRequiredMixin, generic.UpdateView):
@@ -665,7 +628,6 @@ class InvoiceUpdateView(InvoiceMixin, LoginRequiredMixin, generic.UpdateView):
 class TransactionMixin(object):
     model = models.Transaction
     form_class = forms.TransactionForm
-    initial = {'transaction_date': now()}
 
     def get_success_url(self):
         return u'{}#{}'.format(reverse('account_keeping_month', kwargs={
@@ -676,7 +638,7 @@ class TransactionMixin(object):
 
 class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
                             generic.CreateView):
-    pass
+    initial = {'transaction_date': now()}
 
 
 class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,

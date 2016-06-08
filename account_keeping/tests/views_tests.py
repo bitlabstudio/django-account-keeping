@@ -110,6 +110,8 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
+        self.is_callable(self.user, kwargs={
+            'year': now().year, 'month': now().month})
 
 
 class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
@@ -122,10 +124,10 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.account = mixer.blend('account_keeping.Account',
                                    currency=self.ccy)
         self.trans1 = mixer.blend(
-            'account_keeping.Transaction',
+            'account_keeping.Transaction', transaction_date=now(),
             account=self.account, currency=self.ccy)
-        self.trans2 = mixer.blend(
-            'account_keeping.Transaction',
+        mixer.blend(
+            'account_keeping.Transaction', transaction_date=now(),
             account=self.account, currency=self.ccy,
             transaction_type=views.DEPOSIT)
 
@@ -141,16 +143,27 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             rate.save()
         self.account2 = mixer.blend('account_keeping.Account',
                                     currency=self.ccy2)
-        self.trans3 = mixer.blend(
-            'account_keeping.Transaction',
+        mixer.blend(
+            'account_keeping.Transaction', transaction_date=now(),
+            transaction_type=views.WITHDRAWAL,
+            account=self.account2, currency=self.ccy2)
+        mixer.blend(
+            'account_keeping.Transaction', transaction_date=now(),
+            transaction_type=views.DEPOSIT,
+            account=self.account2, currency=self.ccy)
+
+        mixer.blend(
+            'account_keeping.Invoice', invoice_date=now(),
+            invoice_type=views.DEPOSIT,
             account=self.account2, currency=self.ccy2)
 
     def get_view_kwargs(self):
-        return {'year': self.trans1.transaction_date.year, }
+        return {'year': now().year, }
 
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
+        self.is_callable(self.user, kwargs={'year': now().year})
 
 
 class IndexViewTestCase(ViewRequestFactoryTestMixin, TestCase):

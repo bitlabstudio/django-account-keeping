@@ -9,4 +9,4 @@ class CurrencyTestCase(TestCase):
     longMessage = True
 
     def test_tag(self):
-        self.assertEqual(account_keeping_tags.currency('1.11111'), '1.11')
+        self.assertEqual(account_keeping_tags.currency('1.11111'), 'EUR 1.11')

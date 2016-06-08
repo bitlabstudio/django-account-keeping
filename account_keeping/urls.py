@@ -21,6 +21,10 @@ urlpatterns = [
         views.InvoiceCreateView.as_view(),
         name='account_keeping_invoice_create'),
 
+    url(r'accounts/$',
+        views.AccountListView.as_view(),
+        name='account_keeping_accounts'),
+
     url(r'payees/$',
         views.PayeeListView.as_view(),
         name='account_keeping_payees'),
