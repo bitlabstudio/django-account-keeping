@@ -56,7 +56,7 @@ class Command(BaseCommand):
         deposit = models.Transaction.TRANSACTION_TYPES['deposit']
         withdrawal = models.Transaction.TRANSACTION_TYPES['withdrawal']
 
-        with open(filepath, 'rb') as csvfile:
+        with open(filepath, 'rt') as csvfile:
             csvreader = csv.reader(csvfile)
             for row in csvreader:
                 transaction_date = datetime.datetime.strptime(

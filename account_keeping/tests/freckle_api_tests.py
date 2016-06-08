@@ -19,6 +19,7 @@ class GetUnpaidInvoicesWithTransactionsTestCase(TestCase):
         invoice = mixer.blend('account_keeping.Invoice')
         mixer.blend('account_keeping.Transaction', invoice=invoice)
         resp = Response()
+        resp.status_code = 200
         resp._content = json.dumps([{
             'number': invoice.invoice_number,
         }])

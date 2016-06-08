@@ -19,7 +19,8 @@ from dateutil import relativedelta
 from . import forms
 from . import models
 from . import utils
-from utils import get_date as d
+from .freckle_api import get_unpaid_invoices_with_transactions
+from .utils import get_date as d
 
 
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
@@ -262,6 +263,8 @@ class IndexView(LoginRequiredMixin, generic.TemplateView):
             'transactions_without_invoice':
                 models.Transaction.objects.get_without_invoice(),
             'transaction_types': models.Transaction.TRANSACTION_TYPES,
+            'unpaid_invoices_with_transactions':
+                get_unpaid_invoices_with_transactions(),
         })
         return ctx
 

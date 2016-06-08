@@ -1,10 +1,14 @@
 """Tests for the views of the account_keeping app."""
+import json
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils.timezone import now, timedelta
 
 from django_libs.tests.mixins import ViewRequestFactoryTestMixin
 from mixer.backend.django import mixer
+from mock import patch
+from requests import Response
 
 from .. import views
 
@@ -174,7 +178,14 @@ class IndexViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.user = mixer.blend('auth.User', is_superuser=True)
         mixer.blend('account_keeping.Transaction')
 
-    def test_view(self):
+    @patch('requests.request')
+    def test_view(self, mock):
+        resp = Response()
+        resp.status_code = 200
+        resp._content = json.dumps([{
+            'number': 1,
+        }])
+        mock.return_value = resp
         self.should_redirect_to_login_when_anonymous()
         self.is_callable(self.user)
 

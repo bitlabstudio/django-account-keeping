@@ -2,6 +2,7 @@
 from django.conf import settings
 
 from freckle_client.client import FreckleClientV2
+from requests.exceptions import ConnectionError
 
 from . import models
 
@@ -19,8 +20,11 @@ def get_unpaid_invoices_with_transactions():
 
     """
     result = []
-    unpaid_invoices = client.fetch_json(
-        'invoices', query_params={'state': 'unpaid'})
+    try:
+        unpaid_invoices = client.fetch_json(
+            'invoices', query_params={'state': 'unpaid'})
+    except ConnectionError:  # pragma: nocover
+        return None
     for invoice in unpaid_invoices:
         invoice_with_transactions = models.Invoice.objects.filter(
             invoice_number=invoice['number'], transactions__isnull=False)
