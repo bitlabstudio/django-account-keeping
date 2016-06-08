@@ -20,7 +20,7 @@
                 {% for invoice in payee.invoices.all %}
                   <li class="list-group-item">
                     <span class="badge">{{ invoice.value_net|currency }}</span>
-                    <a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.invoice_number }}</a>
+                    <a href="{% url "account_keeping_invoice_update" pk=invoice.pk %}">{{ invoice.invoice_number }}</a>
                   </li>
                 {% endfor %}
               </ul>

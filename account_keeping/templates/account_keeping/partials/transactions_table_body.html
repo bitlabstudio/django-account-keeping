@@ -1,13 +1,13 @@
 {% load account_keeping_tags humanize i18n libs_tags %}
 {% for transaction in transactions %}
     <tr class="{% if transaction.transaction_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
-        <td><a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a></td>
+        <td><a href="{% url "account_keeping_transaction_update" pk=transaction.pk %}">{{ transaction.pk }}</a></td>
         <td>{{ transaction.transaction_date|date:"Y-m-d" }}</td>
         <td>{{ transaction.get_description|linebreaksbr }}</td>
         <td>
             {% for invoice in transaction.get_invoices %}
                 {% if invoice %}
-                    <a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.invoice_number|default:invoice.pk }}</a>
+                    <a href="{% url "account_keeping_invoice_update" pk=invoice.pk %}">{{ invoice.invoice_number|default:invoice.pk }}</a>
                 {% elif transaction.invoice_number %}
                     {{ transaction.invoice_number }}
                 {% else %}

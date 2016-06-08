@@ -5,9 +5,17 @@ from . import views
 
 
 urlpatterns = [
+    url(r'transaction/(?P<pk>\d+)/$',
+        views.TransactionUpdateView.as_view(),
+        name='account_keeping_transaction_update'),
+
     url(r'transaction/create/$',
         views.TransactionCreateView.as_view(),
         name='account_keeping_transaction_create'),
+
+    url(r'invoice/(?P<pk>\d+)/$',
+        views.InvoiceUpdateView.as_view(),
+        name='account_keeping_invoice_update'),
 
     url(r'invoice/create/$',
         views.InvoiceCreateView.as_view(),

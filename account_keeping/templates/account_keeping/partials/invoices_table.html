@@ -18,7 +18,7 @@
     <tbody>
         {% for invoice in invoices %}
         <tr class="{% if invoice.invoice_type == transaction_types.withdrawal %}danger{% else %}success{% endif %}">
-            <td><a href="{% url "admin:account_keeping_invoice_change" invoice.pk %}">{{ invoice.pk }}</a></td>
+            <td><a href="{% url "account_keeping_invoice_update" pk=invoice.pk %}">{{ invoice.pk }}</a></td>
                 <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
                 <td>{{ invoice.invoice_number|default:"n/a" }}</td>
                 <td>{% if invoice.pdf %}<a href="{{ MEDIA_URL }}{{ invoice.pdf }}"><span class="glyphicon glyphicon-file"></span></a>{% else %}n/a{% endif %}</td>
@@ -30,7 +30,7 @@
                 <td><span class="text-{% if invoice.balance >= 0 %}success{% else %}danger{% endif %}">{{ invoice.balance|currency }}</span></td>
                 <td>
                     {% for transaction in invoice.transactions.all %}
-                        <a href="{% url "admin:account_keeping_transaction_change" transaction.pk %}">{{ transaction.pk }}</a>{% if not forloop.last %}, {% endif %}
+                        <a href="{% url "account_keeping_transaction_update" pk=transaction.pk %}">{{ transaction.pk }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </td>
             </tr>

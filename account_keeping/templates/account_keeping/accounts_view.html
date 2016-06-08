@@ -55,7 +55,7 @@
                         {% include "account_keeping/partials/transactions_table_body.html" with show_balance=1 transactions=value_dict.transactions %}
                     </tbody>
                 </table>
-                <a class="btn btn-primary" href="{% url "admin:account_keeping_transaction_add" %}">{% trans "Add new transaction" %}</a>
+                <a class="btn btn-primary" href="{% url "account_keeping_transaction_create" %}">{% trans "Add new transaction" %}</a>
             </div>
         {% endfor %}
 

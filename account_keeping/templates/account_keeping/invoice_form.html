@@ -3,12 +3,12 @@
 
 {% block main %}
   <div class="container">
-    <h1 class="text-center">{% trans "Invoice" %}</h1>
+    <h1 class="text-center">{% trans "Invoice" %}{% if form.instance.pk %} <small>{{ form.instance }}</small>{% endif %}</h1>
     <div class="row">
       <div class="col-sm-offset-3 col-sm-6">
         <form action="." method="post">
           {% include "django_libs/partials/form.html" %}
-          <button type="submit" class="btn btn-primary">{% trans "Create invoice" %}</button>
+          <button type="submit" class="btn btn-primary">{% if form.instance.pk %}{% trans "Update" %}{% else %}{% trans "Create invoice" %}{% endif %}</button>
         </form>
       </div>
     </div>

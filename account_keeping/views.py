@@ -642,9 +642,9 @@ class PayeeListView(LoginRequiredMixin, generic.ListView):
     model = models.Payee
 
 
-class InvoiceCreateView(LoginRequiredMixin, generic.CreateView):
+class InvoiceMixin(object):
+    model = models.Invoice
     form_class = forms.InvoiceForm
-    template_name = 'account_keeping/invoice_form.html'
     initial = {'invoice_date': now()}
 
     def get_success_url(self):
@@ -654,9 +654,17 @@ class InvoiceCreateView(LoginRequiredMixin, generic.CreateView):
         })
 
 
-class TransactionCreateView(LoginRequiredMixin, generic.CreateView):
+class InvoiceCreateView(InvoiceMixin, LoginRequiredMixin, generic.CreateView):
+    pass
+
+
+class InvoiceUpdateView(InvoiceMixin, LoginRequiredMixin, generic.UpdateView):
+    pass
+
+
+class TransactionMixin(object):
+    model = models.Transaction
     form_class = forms.TransactionForm
-    template_name = 'account_keeping/transaction_form.html'
     initial = {'transaction_date': now()}
 
     def get_success_url(self):
@@ -664,3 +672,13 @@ class TransactionCreateView(LoginRequiredMixin, generic.CreateView):
             'year': self.object.transaction_date.year,
             'month': self.object.transaction_date.month,
         }), self.object.account.slug)
+
+
+class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
+                            generic.CreateView):
+    pass
+
+
+class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,
+                            generic.UpdateView):
+    pass

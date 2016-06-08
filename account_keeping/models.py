@@ -149,7 +149,8 @@ class Invoice(AmountMixin, models.Model):
     def __str__(self):
         if self.invoice_number:
             return self.invoice_number
-        return '{0} - {1}'.format(self.invoice_date, self.invoice_type)
+        return '{0} - {1}'.format(self.invoice_date,
+                                  self.get_invoice_type_display())
 
     def save(self, *args, **kwargs):
         self.set_amount_fields()
