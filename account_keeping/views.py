@@ -652,3 +652,15 @@ class InvoiceCreateView(LoginRequiredMixin, generic.CreateView):
             'year': self.object.invoice_date.year,
             'month': self.object.invoice_date.month,
         })
+
+
+class TransactionCreateView(LoginRequiredMixin, generic.CreateView):
+    form_class = forms.TransactionForm
+    template_name = 'account_keeping/transaction_form.html'
+    initial = {'transaction_date': now()}
+
+    def get_success_url(self):
+        return u'{}#{}'.format(reverse('account_keeping_month', kwargs={
+            'year': self.object.transaction_date.year,
+            'month': self.object.transaction_date.month,
+        }), self.object.account.slug)

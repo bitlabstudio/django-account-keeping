@@ -190,7 +190,7 @@ class InvoiceCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.is_callable(self.user)
         self.is_postable(self.user, data={
             'invoice_type': 'd',
-            'invoice_date': '2016-01-01',
+            'invoice_date': now().strftime('%Y-%m-%d'),
             'currency': mixer.blend('currency_history.Currency').pk,
             'amount_net': 0,
             'amount_gross': 0,
@@ -198,3 +198,32 @@ class InvoiceCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             'value_net': 0,
             'value_gross': 0,
         }, to_url_name='account_keeping_month')
+
+
+class TransactionCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``TransactionCreateView`` view class."""
+    view_class = views.TransactionCreateView
+
+    def setUp(self):
+        self.user = mixer.blend('auth.User', is_superuser=True)
+
+    def test_view(self):
+        self.is_callable(self.user)
+        date = now()
+        account = mixer.blend('account_keeping.Account')
+        data = {
+            'transaction_type': 'd',
+            'transaction_date': date.strftime('%Y-%m-%d'),
+            'account': account.pk,
+            'payee': mixer.blend('account_keeping.Payee').pk,
+            'category': mixer.blend('account_keeping.Category').pk,
+            'currency': mixer.blend('currency_history.Currency').pk,
+            'amount_net': 0,
+            'amount_gross': 0,
+            'vat': 0,
+            'value_net': 0,
+            'value_gross': 0,
+        }
+        self.is_postable(self.user, data=data, to=u'{}#{}'.format(
+            reverse('account_keeping_month', kwargs={
+                'year': date.year, 'month': date.month}), account.slug))

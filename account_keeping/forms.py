@@ -15,8 +15,23 @@ class InvoiceForm(forms.ModelForm):
                 'payment_date': forms.widgets.SelectDateWidget(
                     attrs={'style': 'display: inline; width: auto;'}),
             }
-        except AttributeError:
+        except AttributeError:  # pragma: nocover
             widgets = {
                 'invoice_date': forms.widgets.DateInput(),
                 'payment_date': forms.widgets.DateInput(),
+            }
+
+
+class TransactionForm(forms.ModelForm):
+    class Meta:
+        model = models.Transaction
+        fields = '__all__'
+        try:
+            widgets = {
+                'transaction_date': forms.widgets.SelectDateWidget(
+                    attrs={'style': 'display: inline; width: auto;'}),
+            }
+        except AttributeError:  # pragma: nocover
+            widgets = {
+                'transaction_date': forms.widgets.DateInput(),
             }
