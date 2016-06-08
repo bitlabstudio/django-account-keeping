@@ -9,7 +9,7 @@ urlpatterns = [
         views.TransactionUpdateView.as_view(),
         name='account_keeping_transaction_update'),
 
-    url(r'transaction/create/$',
+    url(r'transaction/create(?:/(?P<invoice_pk>\w+))?/$',
         views.TransactionCreateView.as_view(),
         name='account_keeping_transaction_create'),
 

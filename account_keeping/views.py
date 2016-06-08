@@ -640,6 +640,13 @@ class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
                             generic.CreateView):
     initial = {'transaction_date': now()}
 
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        if self.kwargs.get('invoice_pk'):
+            self.initial.update({'invoice': self.kwargs['invoice_pk']})
+        return super(TransactionCreateView, self).dispatch(
+            request, *args, **kwargs)
+
 
 class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,
                             generic.UpdateView):

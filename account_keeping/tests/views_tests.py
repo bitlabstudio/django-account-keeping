@@ -220,6 +220,9 @@ class TransactionCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def setUp(self):
         self.user = mixer.blend('auth.User', is_superuser=True)
 
+    def get_view_kwargs(self):
+        return {'invoice_pk': 1}
+
     def test_view(self):
         self.is_callable(self.user)
         date = now()

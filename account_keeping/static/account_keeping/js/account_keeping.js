@@ -4,4 +4,13 @@ $(document).ready(function() {
     $('a[data-toggle="tab"]').click(function() {
         location.hash = $(this).attr('href').substr(1);
     });
+
+    // Show/hide 'mark invoice' field
+    $('[data-id="invoice-field"]').change(function() {
+        if ($(this).val()) {
+            $('[data-id="mark-invoice-field"]').parents('label').show();
+        } else {
+            $('[data-id="mark-invoice-field"]').parents('label').hide();
+        }
+    }).change();
 });

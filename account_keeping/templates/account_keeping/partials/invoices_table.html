@@ -12,7 +12,7 @@
     <th>{% trans "VAT" %}</th>
     <th>{% trans "Amount (gross)" %}</th>
     <th>{% trans "Balance" %}</th>
-    <th>{% trans "Transactions" %}</th>
+    <th colspan="2">{% trans "Transactions" %}</th>
   </tr>
   </thead>
   <tbody>
@@ -32,6 +32,9 @@
           {% for transaction in invoice.transactions.all %}
             <a href="{% url "account_keeping_transaction_update" pk=transaction.pk %}">{{ transaction.pk }}</a>{% if not forloop.last %}, {% endif %}
           {% endfor %}
+        </td>
+        <td class="text-right">
+          <a class="btn btn-default btn-xs" href="{% url "account_keeping_transaction_create" invoice_pk=invoice.pk %}">{% trans "Add transaction" %}</a>
         </td>
       </tr>
     {% endfor %}
