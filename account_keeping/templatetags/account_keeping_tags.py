@@ -8,7 +8,7 @@ register = template.Library()
 @register.filter()
 def currency(value, currency=None):
     try:
-        currency = currency.code
+        currency = currency.iso_code
     except AttributeError:
         currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
     cleaned_value = '{0:.2f}'.format(float(value))
