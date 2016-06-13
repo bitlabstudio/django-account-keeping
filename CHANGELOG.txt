@@ -1,5 +1,6 @@
 === ongoing (0.2.X - to be released as 0.3) ===
 
+- Added enctype and novalidate parameters to forms
 - Added letsfreckle invoices to dashboard
 - Improved and enhanced transaction form
 - Added account statistics
