@@ -645,8 +645,10 @@ class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        if self.kwargs.get('invoice_pk'):
-            self.initial.update({'invoice': self.kwargs['invoice_pk']})
+        if self.request.GET.get('invoice'):
+            self.initial.update({'invoice': self.request.GET['invoice']})
+        if self.request.GET.get('parent'):
+            self.initial.update({'parent': self.request.GET['parent']})
         return super(TransactionCreateView, self).dispatch(
             request, *args, **kwargs)
 

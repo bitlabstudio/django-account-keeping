@@ -34,7 +34,7 @@
           {% endfor %}
         </td>
         <td class="text-right">
-          <a class="btn btn-default btn-xs" href="{% url "account_keeping_transaction_create" invoice_pk=invoice.pk %}">{% trans "Add transaction" %}</a>
+          <a class="btn btn-default btn-xs" href="{% url "account_keeping_transaction_create" %}?invoice={{ invoice.pk }}">{% trans "Add transaction" %}</a>
         </td>
       </tr>
     {% endfor %}

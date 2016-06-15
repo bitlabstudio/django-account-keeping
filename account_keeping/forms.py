@@ -44,6 +44,7 @@ class TransactionForm(forms.ModelForm):
             'transaction_date': date_widget,
             'invoice': forms.widgets.NumberInput(
                 attrs={'data-id': 'invoice-field'}),
+            'parent': forms.widgets.NumberInput(),
         }
 
     def save(self, *args, **kwargs):

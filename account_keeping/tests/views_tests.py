@@ -231,9 +231,6 @@ class TransactionCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def setUp(self):
         self.user = mixer.blend('auth.User', is_superuser=True)
 
-    def get_view_kwargs(self):
-        return {'invoice_pk': 1}
-
     def test_view(self):
         self.is_callable(self.user)
         date = now()
@@ -254,3 +251,6 @@ class TransactionCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.is_postable(self.user, data=data, to=u'{}#{}'.format(
             reverse('account_keeping_month', kwargs={
                 'year': date.year, 'month': date.month}), account.slug))
+
+        self.is_callable(self.user, data={'invoice': 1})
+        self.is_callable(self.user, data={'parent': 1})

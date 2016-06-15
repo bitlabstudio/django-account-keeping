@@ -31,5 +31,8 @@
             <td>{{ BALANCE|currency:transaction.currency }}</td>
             {% sum "BALANCE" transaction.value_gross multiplier=-1 %}
         {% endif %}
+        <td class="text-right">
+          <a class="btn btn-default btn-xs" href="{% url "account_keeping_transaction_create" %}?parent={{ transaction.pk }}">{% trans "Add transaction" %}</a>
+        </td>
     </tr>
 {% endfor %}
