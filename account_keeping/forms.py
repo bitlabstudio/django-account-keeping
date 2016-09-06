@@ -1,5 +1,6 @@
 """Forms of the account_keeping app."""
 from django import forms
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from . import models
@@ -46,6 +47,12 @@ class TransactionForm(forms.ModelForm):
                 attrs={'data-id': 'invoice-field'}),
             'parent': forms.widgets.NumberInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(TransactionForm, self).__init__(*args, **kwargs)
+        self.fields['payee'].help_text = _(
+            '<a href="{}">Add a payee</a>').format(
+            reverse('account_keeping_payee_create'))
 
     def save(self, *args, **kwargs):
         if self.instance.invoice and self.cleaned_data.get('mark_invoice'):

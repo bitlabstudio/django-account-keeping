@@ -12,7 +12,7 @@
       </tr>
       {% for payee in object_list %}
         <tr>
-          <td>{{ payee }}</td>
+          <td><a href="{% url "account_keeping_payee_update" pk=payee.pk %}">{{ payee }}</a></td>
           <td>
             <a class="btn btn-default" data-toggle="collapse" href="#collapse{{ payee.pk }}" aria-expanded="false" aria-controls="collapse{{ payee.pk }}">{{ payee.invoices.count }}</a>
             <div style="margin-top: 20px;" class="collapse" id="collapse{{ payee.pk }}">

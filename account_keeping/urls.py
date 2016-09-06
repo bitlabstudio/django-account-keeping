@@ -25,6 +25,14 @@ urlpatterns = [
         views.AccountListView.as_view(),
         name='account_keeping_accounts'),
 
+    url(r'payees/(?P<pk>\d+)/$',
+        views.PayeeUpdateView.as_view(),
+        name='account_keeping_payee_update'),
+
+    url(r'payees/create/$',
+        views.PayeeCreateView.as_view(),
+        name='account_keeping_payee_create'),
+
     url(r'payees/$',
         views.PayeeListView.as_view(),
         name='account_keeping_payees'),

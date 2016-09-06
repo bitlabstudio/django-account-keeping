@@ -4,7 +4,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Q, Sum
 from django.shortcuts import redirect
@@ -601,8 +601,22 @@ class YearOverviewView(generic.TemplateView):
         return ctx
 
 
-class PayeeListView(LoginRequiredMixin, generic.ListView):
+class PayeeMixin(LoginRequiredMixin):
     model = models.Payee
+    fields = '__all__'
+    success_url = reverse_lazy('account_keeping_payees')
+
+
+class PayeeListView(PayeeMixin, generic.ListView):
+    pass
+
+
+class PayeeCreateView(PayeeMixin, generic.CreateView):
+    pass
+
+
+class PayeeUpdateView(PayeeMixin, generic.UpdateView):
+    pass
 
 
 class AccountListView(LoginRequiredMixin, generic.ListView):
@@ -641,16 +655,19 @@ class TransactionMixin(object):
 
 class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
                             generic.CreateView):
-    initial = {'transaction_date': now()}
-
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        if self.request.GET.get('invoice'):
-            self.initial.update({'invoice': self.request.GET['invoice']})
-        if self.request.GET.get('parent'):
-            self.initial.update({'parent': self.request.GET['parent']})
+        self.initial.update({'invoice': self.request.GET.get('invoice')})
+        self.initial.update({'parent': self.request.GET.get('parent')})
         return super(TransactionCreateView, self).dispatch(
             request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(TransactionCreateView, self).get_form_kwargs()
+        kwargs['initial'].update({
+            'transaction_date': now(),
+        })
+        return kwargs
 
 
 class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,
