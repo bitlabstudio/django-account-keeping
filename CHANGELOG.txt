@@ -1,5 +1,6 @@
 === ongoing (0.2.X - to be released as 0.3) ===
 
+- Fixed freckle integration
 - Added payee management views
 - Improved transaction form
 - Added enctype and novalidate parameters to forms

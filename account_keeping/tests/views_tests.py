@@ -183,7 +183,7 @@ class IndexViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         resp = Response()
         resp.status_code = 200
         resp._content = json.dumps([{
-            'number': 1,
+            'reference': 1,
         }])
         mock.return_value = resp
         self.should_redirect_to_login_when_anonymous()

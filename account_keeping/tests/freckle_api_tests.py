@@ -21,7 +21,7 @@ class GetUnpaidInvoicesWithTransactionsTestCase(TestCase):
         resp = Response()
         resp.status_code = 200
         resp._content = json.dumps([{
-            'number': invoice.invoice_number,
+            'reference': invoice.invoice_number,
         }])
         mock.return_value = resp
         self.assertEqual(

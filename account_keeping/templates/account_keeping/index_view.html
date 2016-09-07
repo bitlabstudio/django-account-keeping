@@ -16,9 +16,15 @@
         {% include "account_keeping/partials/invoices_table.html" with invoices=invoices_without_pdf %}
     {% endif %}
 
-    {% if get_unpaid_invoices_with_transactions %}
+    {% if unpaid_invoices_with_transactions %}
         <h2>{% trans "Unpaid invoices in Freckle" %}</h2>
-        {% include "account_keeping/partials/invoices_table.html" with invoices=get_unpaid_invoices_with_transactions %}
+        {% if unpaid_invoices_with_transactions.error %}
+          <p class="alert alert-danger">{{ unpaid_invoices_with_transactions.error }}</p>
+        {% elif unpaid_invoices_with_transactions.invoices %}
+          {% include "account_keeping/partials/invoices_table.html" with invoices=unpaid_invoices_with_transactions %}
+        {% else %}
+          <p class="alert alert-success">{% trans "Everything is fine :)" %}</p>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}
