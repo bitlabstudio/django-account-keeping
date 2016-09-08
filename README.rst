@@ -19,7 +19,7 @@ To get the latest commit from GitHub
     pip install -e git+git://github.com/bitmazk/django-account-keeping.git#egg=account_keeping
 
 
-Add ``account_keeping`` and ``currency_history`` to your ``INSTALLED_APPS``
+Add all relevant apps to your ``INSTALLED_APPS``
 
 .. code-block:: python
 
@@ -27,6 +27,7 @@ Add ``account_keeping`` and ``currency_history`` to your ``INSTALLED_APPS``
         ...,
         'account_keeping',
         'currency_history',
+        'import_export',
     )
 
 Add the ``account_keeping`` URLs to your ``urls.py``
@@ -42,8 +43,7 @@ Don't forget to migrate your database
 
 .. code-block:: bash
 
-    ./manage.py migrate account_keeping
-    ./manage.py migrate currency_history
+    ./manage.py migrate
 
 
 Usage

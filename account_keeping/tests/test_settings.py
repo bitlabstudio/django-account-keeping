@@ -60,6 +60,7 @@ EXTERNAL_APPS = [
     'django.contrib.humanize',
     'django_libs',
     'currency_history',
+    'import_export',
 ]
 
 INTERNAL_APPS = [

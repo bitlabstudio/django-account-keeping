@@ -37,6 +37,10 @@ urlpatterns = [
         views.PayeeListView.as_view(),
         name='account_keeping_payees'),
 
+    url(r'export/$',
+        views.TransactionExportView.as_view(),
+        name='account_keeping_export'),
+
     url(r'all/$',
         views.AllTimeView.as_view(),
         name='account_keeping_all'),

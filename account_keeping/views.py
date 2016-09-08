@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
@@ -673,3 +674,32 @@ class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
 class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,
                             generic.UpdateView):
     pass
+
+
+class TransactionExportView(LoginRequiredMixin, generic.FormView):
+    """Creates a csv, which includes a specific set of transactions."""
+    template_name = 'account_keeping/export.html'
+    form_class = forms.ExportForm
+
+    def get_form_kwargs(self):
+        kwargs = super(TransactionExportView, self).get_form_kwargs()
+        kwargs['initial'].update({
+            'start': date(now().today().year - 1, 1, 1),
+            'end': date(now().today().year - 1, 12, 31),
+        })
+        return kwargs
+
+    def form_valid(self, form):
+        dataset = models.TransactionResource().export(
+            queryset=models.Transaction.objects.filter(
+                transaction_date__gte=form.cleaned_data['start'],
+                transaction_date__lte=form.cleaned_data['end'],
+            ).order_by('-transaction_date', '-pk')
+        )
+        response = HttpResponse(dataset.xls, content_type="application/csv")
+        response['Content-Disposition'] = \
+            u'attachment; filename="{} {} - {}.xls"'.format(
+                form.cleaned_data['account'].name,
+                form.cleaned_data['start'],
+                form.cleaned_data['end'])
+        return response

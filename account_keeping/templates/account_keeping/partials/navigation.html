@@ -20,6 +20,8 @@
           <li class="{% navactive request year_url %}"><a href="{{ year_url }}" >Current year</a></li>
           {% url "account_keeping_all" as all_url %}
           <li class="{% navactive request all_url %}"><a href="{{ all_url }}">All time</a></li>
+          {% url "account_keeping_export" as export_url %}
+          <li class="{% navactive request export_url %}"><a href="{{ export_url }}">Export</a></li>
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Statistics <span class="caret"></span></a>
             <ul class="dropdown-menu">

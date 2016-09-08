@@ -254,3 +254,20 @@ class TransactionCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
         self.is_callable(self.user, data={'invoice': 1})
         self.is_callable(self.user, data={'parent': 1})
+
+
+class TransactionExportViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``TransactionExportView`` view class."""
+    view_class = views.TransactionExportView
+
+    def setUp(self):
+        self.user = mixer.blend('auth.User', is_superuser=True)
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.is_callable(self.user)
+        self.is_postable(user=self.user, ajax=True, data={
+            'account': mixer.blend('account_keeping.Account').pk,
+            'start': '2015-01-01',
+            'end': '2018-01-01',
+        })

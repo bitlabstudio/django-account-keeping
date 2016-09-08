@@ -2,3 +2,4 @@ Django
 django-libs
 python-dateutil
 django-currency-history
+django-import-export

@@ -60,3 +60,18 @@ class TransactionForm(forms.ModelForm):
             self.instance.invoice.payment_date = self.instance.transaction_date
             self.instance.invoice.save()
         return super(TransactionForm, self).save(*args, **kwargs)
+
+
+class ExportForm(forms.Form):
+    account = forms.ModelChoiceField(
+        label=_('Account'),
+        queryset=models.Account.objects.all(),
+    )
+
+    start = forms.DateField(
+        label=_('Start'),
+    )
+
+    end = forms.DateField(
+        label=_('End'),
+    )
