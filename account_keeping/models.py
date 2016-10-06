@@ -79,6 +79,11 @@ class Account(models.Model):
         verbose_name=_('Total amount'),
     )
 
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_('Active?'),
+    )
+
     def __str__(self):
         return self.name
 

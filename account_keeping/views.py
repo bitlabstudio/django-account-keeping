@@ -44,7 +44,7 @@ class AccountsViewMixin(object):
 
     def get_context_data(self, **kwargs):
         ctx = super(AccountsViewMixin, self).get_context_data(**kwargs)
-        accounts = models.Account.objects.all()
+        accounts = models.Account.objects.filter(active=True)
         account_transactions = []
         totals = {
             'amount_net': 0,
@@ -491,7 +491,7 @@ class YearOverviewView(generic.TemplateView):
 
             month_end = month + relativedelta.relativedelta(
                 months=1, seconds=-1)
-            for account in models.Account.objects.all():
+            for account in models.Account.objects.filter(active=True):
                 qs_balance = models.Transaction.objects.filter(
                     account=account,
                     parent__isnull=True,
