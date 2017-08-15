@@ -463,24 +463,33 @@ class YearOverviewView(generic.TemplateView):
 
             # TODO: Centralise this, we have this select in
             # get_outstanding_invoices already
-            qs = models.Invoice.objects.filter(
+            invoices = models.Invoice.objects.filter(
                 Q(invoice_date__lt=next_month),
                 Q(payment_date__isnull=True) | Q(payment_date__gte=next_month))
-            qs = qs.prefetch_related(
-                'transactions')
-            qs = qs.extra({'month': truncate_invoice_date, })
-            qs = qs.values('currency')
-            qs = qs.annotate(Sum('value_gross'))
+            invoices = invoices.prefetch_related('transactions')
+            invoices = invoices.extra({'month': truncate_invoice_date, })
+            invoices = invoices.values('currency')
+            qs = invoices.annotate(value_sum=Sum('value_gross'))
             qs_outstanding_month = qs.order_by('currency')
 
             for row in qs_outstanding_month:
-                row['value_gross__sum'] = \
-                    row['value_gross__sum'] \
-                    * month_rates[month][row['currency']]
+                row['value_sum'] = row['value_sum'] * month_rates[month][
+                    row['currency']]
                 try:
-                    outstanding_total[month] += row['value_gross__sum']
+                    outstanding_total[month] += row['value_sum']
                 except KeyError:
-                    outstanding_total[month] = row['value_gross__sum']
+                    outstanding_total[month] = row['value_sum']
+
+            # Substract partial payments
+            qs = invoices.annotate(value_sum=Sum('transactions__value_gross'))
+            qs_outstanding_month = qs.order_by('currency')
+
+            for row in qs_outstanding_month:
+                if not row['value_sum']:
+                    continue
+                row['value_sum'] = row['value_sum'] * month_rates[month][
+                    row['currency']]
+                outstanding_total[month] -= row['value_sum']
 
         balance_total = {}
         for month in months:
