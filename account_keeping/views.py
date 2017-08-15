@@ -492,9 +492,9 @@ class YearOverviewView(generic.TemplateView):
             next_month = month + relativedelta.relativedelta(months=1)
 
             txns = models.Transaction.objects.filter(
-                Q(invoice__invoice_date__lt=next_month),
-                Q(invoice__payment_date__isnull=True) |
-                Q(invoice__payment_date__gte=next_month))
+                invoice__invoice_date__lt=next_month,
+                transaction_date__lt=next_month,
+                invoice__payment_date__isnull=True)
             txns = txns.extra({'month': truncate_transaction_date, })
             txns = txns.values('currency')
             qs = txns.annotate(value_sum=Sum('value_gross'))
@@ -511,7 +511,8 @@ class YearOverviewView(generic.TemplateView):
                 try:
                     outstanding_total[month] -= partial_payments_total[month]
                 except KeyError:
-                    outstanding_total[month] = 0 - partial_payments_total[month]
+                    outstanding_total[month] = \
+                        0 - partial_payments_total[month]
 
         balance_total = {}
         for month in months:
