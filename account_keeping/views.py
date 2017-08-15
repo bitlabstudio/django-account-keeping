@@ -421,6 +421,8 @@ class YearOverviewView(generic.TemplateView):
         # of the invoice_date and payment_date
         truncate_invoice_date = connection.ops.date_trunc_sql(
             'month', 'invoice_date')
+        truncate_transaction_date = connection.ops.date_trunc_sql(
+            'month', 'transaction_date')
         truncate_payment_date = connection.ops.date_trunc_sql(
             'payment_month', 'payment_date')
         qs_invoices_year = models.Invoice.objects.filter(
@@ -480,16 +482,36 @@ class YearOverviewView(generic.TemplateView):
                 except KeyError:
                     outstanding_total[month] = row['value_sum']
 
-            # Substract partial payments
-            qs = invoices.annotate(value_sum=Sum('transactions__value_gross'))
-            qs_outstanding_month = qs.order_by('currency')
+        partial_payments_total = {}
+        for month in months:
+            if month.month > past_months_of_year:
+                # In the current year, we don't want to save values for future
+                # months
+                break
 
-            for row in qs_outstanding_month:
-                if not row['value_sum']:
-                    continue
+            next_month = month + relativedelta.relativedelta(months=1)
+
+            txns = models.Transaction.objects.filter(
+                Q(invoice__invoice_date__lt=next_month),
+                Q(invoice__payment_date__isnull=True) |
+                Q(invoice__payment_date__gte=next_month))
+            txns = txns.extra({'month': truncate_transaction_date, })
+            txns = txns.values('currency')
+            qs = txns.annotate(value_sum=Sum('value_gross'))
+            qs_partial_payments_month = qs.order_by('currency')
+
+            for row in qs_partial_payments_month:
                 row['value_sum'] = row['value_sum'] * month_rates[month][
                     row['currency']]
-                outstanding_total[month] -= row['value_sum']
+                try:
+                    partial_payments_total[month] += row['value_sum']
+                except KeyError:
+                    partial_payments_total[month] = row['value_sum']
+            if partial_payments_total.get(month):
+                try:
+                    outstanding_total[month] -= partial_payments_total[month]
+                except KeyError:
+                    outstanding_total[month] = 0 - partial_payments_total[month]
 
         balance_total = {}
         for month in months:
