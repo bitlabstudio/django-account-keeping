@@ -66,15 +66,15 @@ class Account(models.Model):
     )
 
     initial_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Initial amount'),
     )
 
     total_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Total amount'),
     )
@@ -156,38 +156,38 @@ class Invoice(AmountMixin, models.Model):
     )
 
     amount_net = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         blank=True,
         verbose_name=_('Amount net'),
     )
 
     vat = models.DecimalField(
-        max_digits=4,
-        decimal_places=2,
+        max_digits=14,
+        decimal_places=10,
         default=0,
         verbose_name=_('VAT'),
     )
 
     amount_gross = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         blank=True,
         verbose_name=_('Amount gross'),
     )
 
     value_net = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Value net'),
     )
 
     value_gross = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Value gross'),
     )
@@ -381,38 +381,38 @@ class Transaction(AmountMixin, models.Model):
     )
 
     amount_net = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         blank=True,
         verbose_name=_('Amount net'),
     )
 
     vat = models.DecimalField(
-        max_digits=4,
-        decimal_places=2,
+        max_digits=14,
+        decimal_places=10,
         default=0,
         verbose_name=_('VAT'),
     )
 
     amount_gross = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         blank=True,
         verbose_name=_('Amount gross'),
     )
 
     value_net = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Value net'),
     )
 
     value_gross = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=10,
         default=0,
         verbose_name=_('Value gross'),
     )
