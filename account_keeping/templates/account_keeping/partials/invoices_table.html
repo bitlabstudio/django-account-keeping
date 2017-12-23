@@ -25,7 +25,7 @@
         <td>{{ invoice.description|default:"n/a" }}</td>
         <td>{{ invoice.currency.iso_code }}</td>
         <td>{{ invoice.amount_net|currency:invoice.currency }}</td>
-        <td>{{ invoice.vat }}</td>
+        <td>{{ invoice.vat|currency:invoice.currency }}</td>
         <td>{{ invoice.amount_gross|currency:invoice.currency }}</td>
         <td><span class="text-{% if invoice.balance >= 0 %}success{% else %}danger{% endif %}">{{ invoice.balance|currency:invoice.currency }}</span></td>
         <td>

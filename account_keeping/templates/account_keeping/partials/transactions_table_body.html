@@ -25,7 +25,7 @@
         <td><a href="{% url "admin:account_keeping_category_change" transaction.category.pk %}">{{ transaction.category }}</a></td>
         <td>{% if transaction.transaction_type == 'w' %}{% trans "DR" %}{% else %}{% trans "CR" %}{% endif %}</td>
         <td>{{ transaction.amount_net|currency:transaction.currency }}</td>
-        <td>{{ transaction.vat }}</td>
+        <td>{{ transaction.vat|currency:transaction.currency }}</td>
         <td>{{ transaction.amount_gross|currency:transaction.currency }}</td>
         {% if show_balance %}
             <td>{{ BALANCE|currency:transaction.currency }}</td>
