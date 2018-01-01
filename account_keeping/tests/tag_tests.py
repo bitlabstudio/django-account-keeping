@@ -10,4 +10,4 @@ class CurrencyTestCase(TestCase):
 
     def test_tag(self):
         self.assertEqual(
-            account_keeping_tags.currency('1.1111100'), 'EUR 1.11111')
+            account_keeping_tags.currency('1.1111100'), 'EUR 1.11')
