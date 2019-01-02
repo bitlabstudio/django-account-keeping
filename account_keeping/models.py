@@ -48,6 +48,27 @@ class AmountMixin(object):
 
 
 @python_2_unicode_compatible
+class Branch(models.Model):
+    name = models.CharField(
+        max_length=128,
+        verbose_name=_('Name'),
+    )
+
+    slug = models.SlugField(
+        max_length=128,
+        verbose_name=_('Slug'),
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = _('Branch')
+        verbose_name_plural = _('Branches')
+
+
+@python_2_unicode_compatible
 class Account(models.Model):
     name = models.CharField(
         max_length=128,
