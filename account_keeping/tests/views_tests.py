@@ -20,15 +20,17 @@ class AllTimeViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def setUp(self):
         self.user = mixer.blend('auth.User', is_superuser=True)
         self.ccy = mixer.blend('currency_history.Currency', iso_code='EUR')
-        self.account = mixer.blend('account_keeping.Account',
-                                   currency=self.ccy)
+        self.account = mixer.blend(
+            'account_keeping.Account', currency=self.ccy,
+            branch__currency=self.ccy)
         self.trans1 = mixer.blend(
             'account_keeping.Transaction',
             account=self.account, currency=self.ccy)
 
         self.ccy2 = mixer.blend('currency_history.Currency')
-        self.account2 = mixer.blend('account_keeping.Account',
-                                    currency=self.ccy2)
+        self.account2 = mixer.blend(
+            'account_keeping.Account', currency=self.ccy2,
+            branch__currency=self.ccy2)
         self.trans2 = mixer.blend(
             'account_keeping.Transaction',
             account=self.account2, currency=self.ccy2)
@@ -89,15 +91,17 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def setUp(self):
         self.user = mixer.blend('auth.User', is_superuser=True)
         self.ccy = mixer.blend('currency_history.Currency', iso_code='EUR')
-        self.account = mixer.blend('account_keeping.Account',
-                                   currency=self.ccy)
+        self.account = mixer.blend(
+            'account_keeping.Account', currency=self.ccy,
+            branch__currency=self.ccy)
         self.trans1 = mixer.blend(
             'account_keeping.Transaction',
             account=self.account, currency=self.ccy)
 
         self.ccy2 = mixer.blend('currency_history.Currency')
-        self.account2 = mixer.blend('account_keeping.Account',
-                                    currency=self.ccy2)
+        self.account2 = mixer.blend(
+            'account_keeping.Account', currency=self.ccy2,
+            branch__currency=self.ccy2)
         self.trans2 = mixer.blend(
             'account_keeping.Transaction',
             account=self.account2, currency=self.ccy2)
@@ -134,8 +138,9 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     def setUp(self):
         self.user = mixer.blend('auth.User', is_superuser=True)
         self.ccy = mixer.blend('currency_history.Currency', iso_code='EUR')
-        self.account = mixer.blend('account_keeping.Account',
-                                   currency=self.ccy)
+        self.account = mixer.blend(
+            'account_keeping.Account', currency=self.ccy,
+            branch__currency=self.ccy)
         self.trans1 = mixer.blend(
             'account_keeping.Transaction', transaction_date=now(),
             account=self.account, currency=self.ccy)
@@ -154,8 +159,9 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             )
             rate.date = new_date
             rate.save()
-        self.account2 = mixer.blend('account_keeping.Account',
-                                    currency=self.ccy2)
+        self.account2 = mixer.blend(
+            'account_keeping.Account', currency=self.ccy2,
+            branch__currency=self.ccy2)
         mixer.blend(
             'account_keeping.Transaction', transaction_date=now(),
             transaction_type=views.WITHDRAWAL,
@@ -168,7 +174,8 @@ class YearOverviewViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         mixer.blend(
             'account_keeping.Invoice', invoice_date=now(),
             invoice_type=views.DEPOSIT,
-            account=self.account2, currency=self.ccy2)
+            account=self.account2, currency=self.ccy2,
+            branch__currency=self.ccy2)
 
     def get_view_kwargs(self):
         return {'year': now().year, }

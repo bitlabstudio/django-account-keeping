@@ -98,12 +98,12 @@
           {% endfor %}
           <tr>
             <td><strong>{% trans "Total" %}</strong></td>
-            <td><strong>{{ totals.expenses_net|currency }}</strong></td>
-            <td><strong>{{ totals.expenses_gross|currency }}</strong></td>
-            <td><strong>{{ totals.income_net|currency }}</strong></td>
-            <td><strong>{{ totals.income_gross|currency }}</strong></td>
-            <td><strong>{{ totals.amount_net|currency }}</strong></td>
-            <td><strong>{{ totals.amount_gross|currency }}</strong></td>
+            <td><strong>{{ totals.expenses_net|currency:branch.currency}}</strong></td>
+            <td><strong>{{ totals.expenses_gross|currency:branch.currency}}</strong></td>
+            <td><strong>{{ totals.income_net|currency:branch.currency}}</strong></td>
+            <td><strong>{{ totals.income_gross|currency:branch.currency}}</strong></td>
+            <td><strong>{{ totals.amount_net|currency:branch.currency}}</strong></td>
+            <td><strong>{{ totals.amount_gross|currency:branch.currency}}</strong></td>
           </tr>
           </tbody>
         </table>
@@ -136,9 +136,9 @@
           {% endfor %}
           <tr>
             <th><strong>{% trans "Total" %} ({{ base_currency.iso_code }})</strong></th>
-            <th>{{ totals.outstanding_expenses_gross|currency }}</th>
-            <th>{{ totals.outstanding_income_gross|currency }}</th>
-            <th>{{ totals.outstanding_profit_gross|currency }}</th>
+            <th>{{ totals.outstanding_expenses_gross|currency:branch.currency}}</th>
+            <th>{{ totals.outstanding_income_gross|currency:branch.currency}}</th>
+            <th>{{ totals.outstanding_profit_gross|currency:branch.currency}}</th>
           </tr>
           </tbody>
         </table>

@@ -10,12 +10,12 @@ from ..models import Branch
 register = template.Library()
 
 
-@register.simple_tag()
+@register.simple_tag
 def get_branches():
     return Branch.objects.all()
 
 
-@register.filter()
+@register.filter
 def currency(value, currency=None):
     try:
         currency = currency.iso_code

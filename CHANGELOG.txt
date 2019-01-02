@@ -1,7 +1,12 @@
-=== ongoing (0.3.X - to be released as 0.4) ===
+=== ongoing (0.4.X - to be released as 0.5) ===
+
+tbc
+
+=== 0.4 ===
 
 - Allow up to 10 decimal places
 - Substract partial payments from outstanding amounts
+- Added branches
 
 === 0.3 ===
 

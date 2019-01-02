@@ -42,6 +42,15 @@ class BranchMixin(object):
                 pass
         return super(BranchMixin, self).dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        ctx = super(BranchMixin, self).get_context_data(**kwargs)
+        ctx.update({
+            'branch': self.branch or {
+                'currency': getattr(settings, 'BASE_SETTINGS', 'EUR')
+            }
+        })
+        return ctx
+
 
 class AccountsViewMixin(object):
     """
@@ -64,7 +73,10 @@ class AccountsViewMixin(object):
             'income_net': 0,
             'income_gross': 0,
         }
-        base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
+        if self.branch:
+            base_currency = self.branch.currency.iso_code
+        else:
+            base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         for account in accounts:
             rate = 1
             if not account.currency.iso_code == base_currency:
@@ -288,10 +300,13 @@ class AllTimeView(BranchMixin, AccountsViewMixin, generic.TemplateView):
         return invoices
 
     def get_rate(self, currency):
+        if self.branch:
+            base_currency = self.branch.currency.iso_code
+        else:
+            base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         return decimal.Decimal(CurrencyRateHistory.objects.filter(
             rate__from_currency=currency,
-            rate__to_currency__iso_code=getattr(
-                settings, 'BASE_CURRENCY', 'EUR'),
+            rate__to_currency__iso_code=base_currency,
         )[0].value)
 
     def get_transactions(self, account):
@@ -353,10 +368,13 @@ class MonthView(BranchMixin, AccountsViewMixin, generic.TemplateView):
         return invoices.prefetch_related('transactions')
 
     def get_rate(self, currency):
+        if self.branch:
+            base_currency = self.branch.currency.iso_code
+        else:
+            base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         rates = CurrencyRateHistory.objects.filter(
             rate__from_currency=currency,
-            rate__to_currency__iso_code=getattr(
-                settings, 'BASE_CURRENCY', 'EUR'),
+            rate__to_currency__iso_code=base_currency,
         )
         try:
             return decimal.Decimal(rates.filter(
@@ -412,7 +430,10 @@ class YearOverviewView(BranchMixin, generic.TemplateView):
             months.append(datetime.date(self.year, i, 1))
 
         month_rates = {}
-        base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
+        if self.branch:
+            base_currency = self.branch.currency.iso_code
+        else:
+            base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
         for month in months:
             for currency in Currency.objects.all():
                 rate = 1
@@ -610,11 +631,8 @@ class YearOverviewView(BranchMixin, generic.TemplateView):
         equity_total = {}
         income_total_total = 0
         for month in months:
-            try:
-                equity_total[month] = \
-                    balance_total[month] + outstanding_total[month]
-            except KeyError:
-                break
+            equity_total[month] = balance_total.get(
+                month, 0) + outstanding_total.get(month, 0)
 
         for month in months:
             try:

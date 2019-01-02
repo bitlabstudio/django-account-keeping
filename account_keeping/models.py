@@ -57,6 +57,13 @@ class Branch(models.Model):
     slug = models.SlugField(
         max_length=128,
         verbose_name=_('Slug'),
+        unique=True,
+    )
+
+    currency = models.ForeignKey(
+        'currency_history.Currency',
+        related_name='branches',
+        verbose_name=_('Currency'),
     )
 
     def __str__(self):
