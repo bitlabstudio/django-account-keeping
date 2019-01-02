@@ -1,6 +1,6 @@
 coverage
 fabric3
-paramiko<2.0.0
+paramiko>=2.0.9
 flake8
 ipdb
 tox

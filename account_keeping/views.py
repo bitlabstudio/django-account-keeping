@@ -668,7 +668,21 @@ class InvoiceMixin(object):
 
 
 class InvoiceCreateView(InvoiceMixin, LoginRequiredMixin, generic.CreateView):
-    initial = {'invoice_date': now()}
+    def get_form_kwargs(self):
+        kwargs = super(InvoiceCreateView, self).get_form_kwargs()
+        kwargs['initial'].update({
+            'invoice_date': now(),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        ctx = super(InvoiceCreateView, self).get_context_data(**kwargs)
+        ctx.update({
+            'last_invoices': models.Invoice.objects.exclude(
+                invoice_number__exact='').values_list(
+                'invoice_number', flat=True)[:10],
+        })
+        return ctx
 
 
 class InvoiceUpdateView(InvoiceMixin, LoginRequiredMixin, generic.UpdateView):
@@ -690,8 +704,10 @@ class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
                             generic.CreateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.initial.update({'invoice': self.request.GET.get('invoice')})
-        self.initial.update({'parent': self.request.GET.get('parent')})
+        if self.request.GET.get('invoice'):
+            self.initial.update({'invoice': self.request.GET['invoice']})
+        if self.request.GET.get('parent'):
+            self.initial.update({'parent': self.request.GET['parent']})
         return super(TransactionCreateView, self).dispatch(
             request, *args, **kwargs)
 

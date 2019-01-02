@@ -6,6 +6,16 @@
     <h1 class="text-center">{% trans "Invoice" %}{% if form.instance.pk %} <small>{{ form.instance }}</small>{% endif %}</h1>
     <div class="row">
       <div class="col-sm-offset-3 col-sm-6">
+        {% if last_invoices %}
+          <div class="alert alert-info">
+            {% trans "The last invoice numbers are:" %}
+            <ul>
+              {% for no in last_invoices %}
+                <li>{{ no }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
         <form action="." method="post" enctype="multipart/form-data" novalidate>
           {% include "django_libs/partials/form.html" %}
           <button type="submit" class="btn btn-primary">{% if form.instance.pk %}{% trans "Update" %}{% else %}{% trans "Create invoice" %}{% endif %}</button>

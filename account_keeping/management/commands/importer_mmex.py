@@ -7,7 +7,6 @@ transactions. After you export the .csv you must identify all incoming
 
 """
 from decimal import Decimal
-from optparse import make_option
 import csv
 import datetime
 
@@ -19,25 +18,29 @@ from ... import models
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
+    help = 'Imports the specified .csv file from mmex'
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-f', '--file',
             dest='filepath',
-            help='Filepath to the .csv file that contains the data'),
-        make_option(
+            help='Filepath to the .csv file that contains the data',
+        )
+        parser.add_argument(
             '-a', '--account',
             dest='account',
-            help='Account slug of the account that should hold the new data'),
-        make_option(
+            help='Account slug of the account that should hold the new data',
+        )
+        parser.add_argument(
             '-c', '--currency',
             dest='currency',
-            help='ISO-code of the currency for the specified data'),
-        make_option(
+            help='ISO-code of the currency for the specified data',
+        )
+        parser.add_argument(
             '-t', '--vat',
             dest='vat',
-            help='VAT that should be applied to all transactions (i.e. 19)'),
-    )
-    help = 'Imports the specified .csv file from mmex'
+            help='VAT that should be applied to all transactions (i.e. 19)',
+        )
 
     def handle(self, *args, **options):
         try:

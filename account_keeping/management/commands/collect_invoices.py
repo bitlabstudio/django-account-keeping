@@ -2,7 +2,6 @@
 Collects invoices for the given account and timeframe into a tarball.
 
 """
-from optparse import make_option
 import datetime
 import os
 import shutil
@@ -13,25 +12,29 @@ from ... import models
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
+    help = 'Copies invoices of transactions into a folder.'
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-o', '--output',
             dest='output',
-            help='Output folder. Make sure that the folder exists.'),
-        make_option(
+            help='Output folder. Make sure that the folder exists.',
+        )
+        parser.add_argument(
             '-a', '--account',
             dest='account',
-            help='Account slug of the account that should be handled.'),
-        make_option(
+            help='Account slug of the account that should be handled.',
+        )
+        parser.add_argument(
             '-s', '--start',
             dest='start_date',
-            help='Start date. Include all transactions from this date.'),
-        make_option(
+            help='Start date. Include all transactions from this date.',
+        )
+        parser.add_argument(
             '-e', '--end',
             dest='end_date',
-            help='End date. Include all transactions up to this date.'),
-    )
-    help = 'Copies invoices of transactions into a folder.'
+            help='End date. Include all transactions up to this date.',
+        )
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
