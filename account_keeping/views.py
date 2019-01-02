@@ -1,13 +1,13 @@
 """Views for the account_keeping app."""
 import decimal
-from datetime import date
+import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Q, Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.defaultfilters import date as date_filter
 from django.utils.decorators import method_decorator
@@ -28,11 +28,19 @@ DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
 
 
-class LoginRequiredMixin(object):
+class BranchMixin(object):
+    branch = None
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
+        # Get the current branch
+        if request.COOKIES.get('django_account_keeping_branch'):
+            try:
+                self.branch = models.Branch.objects.get(
+                    slug=request.COOKIES.get('django_account_keeping_branch'))
+            except models.Branch.DoesNotExist:
+                pass
+        return super(BranchMixin, self).dispatch(request, *args, **kwargs)
 
 
 class AccountsViewMixin(object):
@@ -45,6 +53,8 @@ class AccountsViewMixin(object):
     def get_context_data(self, **kwargs):
         ctx = super(AccountsViewMixin, self).get_context_data(**kwargs)
         accounts = models.Account.objects.filter(active=True)
+        if self.branch:
+            accounts = accounts.filter(branch=self.branch)
         account_transactions = []
         totals = {
             'amount_net': 0,
@@ -210,19 +220,72 @@ class AccountsViewMixin(object):
         raise NotImplementedError('Method not implemented')  # pragma: no cover
 
 
-class AllTimeView(AccountsViewMixin, generic.TemplateView):
+class BranchSelectView(generic.View):
+    """Marks a branch as active."""
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.month = date(date.today().year, date.today().month, 1)
+        response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        if kwargs.get('slug') == 'all':
+            response.delete_cookie('django_account_keeping_branch')
+        else:
+            try:
+                branch = models.Branch.objects.get(slug=kwargs.get('slug'))
+            except models.Branch.DoesNotExist:
+                raise Http404
+            expires = datetime.datetime.strftime(
+                datetime.datetime.utcnow() + datetime.timedelta(days=100),
+                "%a, %d-%b-%Y %H:%M:%S GMT")
+            response.set_cookie(
+                'django_account_keeping_branch',
+                branch.slug,
+                max_age=(100 * 24 * 60 * 60),
+                expires=expires,
+            )
+        return response
+
+
+class IndexView(BranchMixin, generic.TemplateView):
+    """View that shows the main menu for the accounting app."""
+    template_name = 'account_keeping/index_view.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(IndexView, self).get_context_data(**kwargs)
+        invoices_without_pdf = models.Invoice.objects.get_without_pdf()
+        transactions_without_invoice = \
+            models.Transaction.objects.get_without_invoice()
+        if self.branch:
+            invoices_without_pdf = invoices_without_pdf.filter(
+                branch=self.branch)
+            transactions_without_invoice = transactions_without_invoice.filter(
+                Q(invoice__isnull=True) | Q(invoice__branch=self.branch)
+            )
+        ctx.update({
+            'invoices_without_pdf': invoices_without_pdf,
+            'transactions_without_invoice': transactions_without_invoice,
+            'transaction_types': models.Transaction.TRANSACTION_TYPES,
+            'unpaid_invoices_with_transactions':
+                get_unpaid_invoices_with_transactions(self.branch),
+        })
+        return ctx
+
+
+class AllTimeView(BranchMixin, AccountsViewMixin, generic.TemplateView):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.month = datetime.date(
+            datetime.date.today().year, datetime.date.today().month, 1)
         return super(AllTimeView, self).dispatch(request, *args, **kwargs)
 
     def get_view_name(self):
         return 'All Time Overview'
 
     def get_outstanding_invoices(self):
-        return models.Invoice.objects.filter(
+        invoices = models.Invoice.objects.filter(
             payment_date__isnull=True
         )
+        if self.branch:
+            invoices = invoices.filter(branch=self.branch)
+        return invoices
 
     def get_rate(self, currency):
         return decimal.Decimal(CurrencyRateHistory.objects.filter(
@@ -253,27 +316,11 @@ class CurrentYearRedirectView(generic.View):
         return redirect('account_keeping_year', year=now_.year)
 
 
-class IndexView(LoginRequiredMixin, generic.TemplateView):
-    """View that shows the main menu for the accounting app."""
-    template_name = 'account_keeping/index_view.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super(IndexView, self).get_context_data(**kwargs)
-        ctx.update({
-            'invoices_without_pdf': models.Invoice.objects.get_without_pdf(),
-            'transactions_without_invoice':
-                models.Transaction.objects.get_without_invoice(),
-            'transaction_types': models.Transaction.TRANSACTION_TYPES,
-            'unpaid_invoices_with_transactions':
-                get_unpaid_invoices_with_transactions(),
-        })
-        return ctx
-
-
-class MonthView(AccountsViewMixin, generic.TemplateView):
+class MonthView(BranchMixin, AccountsViewMixin, generic.TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.month = date(int(kwargs.get('year')), int(kwargs.get('month')), 1)
+        self.month = datetime.date(
+            int(kwargs.get('year')), int(kwargs.get('month')), 1)
         return super(MonthView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -282,7 +329,7 @@ class MonthView(AccountsViewMixin, generic.TemplateView):
             self.month - relativedelta.relativedelta(months=1)
         next_month = \
             self.month + relativedelta.relativedelta(months=1)
-        if next_month > date.today():
+        if next_month > datetime.date.today():
             next_month = None
 
         ctx.update({
@@ -297,10 +344,13 @@ class MonthView(AccountsViewMixin, generic.TemplateView):
 
     def get_outstanding_invoices(self):
         next_month = self.month + relativedelta.relativedelta(months=1)
-        return models.Invoice.objects.filter(
+        invoices = models.Invoice.objects.filter(
             Q(invoice_date__lt=next_month),
             Q(payment_date__isnull=True) | Q(payment_date__gte=next_month),
-        ).prefetch_related('transactions')
+        )
+        if self.branch:
+            invoices = invoices.filter(branch=self.branch)
+        return invoices.prefetch_related('transactions')
 
     def get_rate(self, currency):
         rates = CurrencyRateHistory.objects.filter(
@@ -326,7 +376,7 @@ class MonthView(AccountsViewMixin, generic.TemplateView):
         )
 
 
-class YearOverviewView(generic.TemplateView):
+class YearOverviewView(BranchMixin, generic.TemplateView):
     template_name = 'account_keeping/year_view.html'
 
     @method_decorator(login_required)
@@ -339,15 +389,18 @@ class YearOverviewView(generic.TemplateView):
         past_months_of_year = utils.get_months_of_year(self.year)
         last_year = self.year - 1
         next_year = self.year + 1
-        if next_year > date.today().year:
+        if next_year > datetime.date.today().year:
             next_year = None
 
         truncate_date = connection.ops.date_trunc_sql(
             'month', 'transaction_date')
 
-        qs_year = models.Transaction.objects.filter(
-            parent__isnull=True, transaction_date__year=self.year).extra(
-                {'month': truncate_date})
+        txns = models.Transaction.objects.filter(
+            parent__isnull=True, transaction_date__year=self.year)
+        if self.branch:
+            txns = txns.filter(
+                Q(invoice__branch=self.branch) | Q(invoice__isnull=True))
+        qs_year = txns.extra({'month': truncate_date})
 
         qs_income = qs_year.filter(
             transaction_type=DEPOSIT).values(
@@ -356,7 +409,7 @@ class YearOverviewView(generic.TemplateView):
 
         months = []
         for i in range(1, 13):
-            months.append(date(self.year, i, 1))
+            months.append(datetime.date(self.year, i, 1))
 
         month_rates = {}
         base_currency = getattr(settings, 'BASE_CURRENCY', 'EUR')
@@ -425,10 +478,13 @@ class YearOverviewView(generic.TemplateView):
             'month', 'transaction_date')
         truncate_payment_date = connection.ops.date_trunc_sql(
             'payment_month', 'payment_date')
-        qs_invoices_year = models.Invoice.objects.filter(
-            invoice_date__year=self.year).extra({
-                'month': truncate_invoice_date,
-                'payment_month': truncate_payment_date})
+        invoices = models.Invoice.objects.filter(invoice_date__year=self.year)
+        if self.branch:
+            invoices = invoices.filter(branch=self.branch)
+        qs_invoices_year = invoices.extra({
+            'month': truncate_invoice_date,
+            'payment_month': truncate_payment_date,
+        })
 
         qs_new = qs_invoices_year.filter(invoice_type=DEPOSIT)
         qs_new = qs_new.values('month', 'currency')
@@ -468,6 +524,8 @@ class YearOverviewView(generic.TemplateView):
             invoices = models.Invoice.objects.filter(
                 Q(invoice_date__lt=next_month),
                 Q(payment_date__isnull=True) | Q(payment_date__gte=next_month))
+            if self.branch:
+                invoices = invoices.filter(branch=self.branch)
             invoices = invoices.prefetch_related('transactions')
             invoices = invoices.extra({'month': truncate_invoice_date, })
             invoices = invoices.values('currency')
@@ -495,6 +553,9 @@ class YearOverviewView(generic.TemplateView):
                 invoice__invoice_date__lt=next_month,
                 transaction_date__lt=next_month,
                 invoice__payment_date__isnull=True)
+            if self.branch:
+                txns = txns.filter(
+                    Q(invoice__branch=self.branch) | Q(invoice__isnull=True))
             txns = txns.extra({'month': truncate_transaction_date, })
             txns = txns.values('currency')
             qs = txns.annotate(value_sum=Sum('value_gross'))
@@ -523,7 +584,10 @@ class YearOverviewView(generic.TemplateView):
 
             month_end = month + relativedelta.relativedelta(
                 months=1, seconds=-1)
-            for account in models.Account.objects.filter(active=True):
+            accounts = models.Account.objects.filter(active=True)
+            if self.branch:
+                accounts = accounts.filter(branch=self.branch)
+            for account in accounts:
                 qs_balance = models.Transaction.objects.filter(
                     account=account,
                     parent__isnull=True,
@@ -634,7 +698,7 @@ class YearOverviewView(generic.TemplateView):
         return ctx
 
 
-class PayeeMixin(LoginRequiredMixin):
+class PayeeMixin(BranchMixin):
     model = models.Payee
     fields = '__all__'
     success_url = reverse_lazy('account_keeping_payees')
@@ -652,13 +716,18 @@ class PayeeUpdateView(PayeeMixin, generic.UpdateView):
     pass
 
 
-class AccountListView(LoginRequiredMixin, generic.ListView):
+class AccountListView(BranchMixin, generic.ListView):
     model = models.Account
 
 
 class InvoiceMixin(object):
     model = models.Invoice
     form_class = forms.InvoiceForm
+
+    def get_form_kwargs(self):
+        kwargs = super(InvoiceMixin, self).get_form_kwargs()
+        kwargs.update({'branch': self.branch})
+        return kwargs
 
     def get_success_url(self):
         return reverse('account_keeping_month', kwargs={
@@ -667,7 +736,7 @@ class InvoiceMixin(object):
         })
 
 
-class InvoiceCreateView(InvoiceMixin, LoginRequiredMixin, generic.CreateView):
+class InvoiceCreateView(BranchMixin, InvoiceMixin, generic.CreateView):
     def get_form_kwargs(self):
         kwargs = super(InvoiceCreateView, self).get_form_kwargs()
         kwargs['initial'].update({
@@ -677,15 +746,17 @@ class InvoiceCreateView(InvoiceMixin, LoginRequiredMixin, generic.CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(InvoiceCreateView, self).get_context_data(**kwargs)
+        invoices = models.Invoice.objects.exclude(invoice_number__exact='')
+        if self.branch:
+            invoices = invoices.filter(branch=self.branch)
         ctx.update({
-            'last_invoices': models.Invoice.objects.exclude(
-                invoice_number__exact='').values_list(
-                'invoice_number', flat=True)[:10],
+            'last_invoices': invoices.values_list(
+                'invoice_number', flat=True)[:3],
         })
         return ctx
 
 
-class InvoiceUpdateView(InvoiceMixin, LoginRequiredMixin, generic.UpdateView):
+class InvoiceUpdateView(BranchMixin, InvoiceMixin, generic.UpdateView):
     pass
 
 
@@ -700,8 +771,7 @@ class TransactionMixin(object):
         }), self.object.account.slug)
 
 
-class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
-                            generic.CreateView):
+class TransactionCreateView(BranchMixin, TransactionMixin, generic.CreateView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         if self.request.GET.get('invoice'):
@@ -719,12 +789,11 @@ class TransactionCreateView(TransactionMixin, LoginRequiredMixin,
         return kwargs
 
 
-class TransactionUpdateView(TransactionMixin, LoginRequiredMixin,
-                            generic.UpdateView):
+class TransactionUpdateView(BranchMixin, TransactionMixin, generic.UpdateView):
     pass
 
 
-class TransactionExportView(LoginRequiredMixin, generic.FormView):
+class TransactionExportView(BranchMixin, generic.FormView):
     """Creates a csv, which includes a specific set of transactions."""
     template_name = 'account_keeping/export.html'
     form_class = forms.ExportForm
@@ -732,22 +801,25 @@ class TransactionExportView(LoginRequiredMixin, generic.FormView):
     def get_form_kwargs(self):
         kwargs = super(TransactionExportView, self).get_form_kwargs()
         kwargs['initial'].update({
-            'start': date(now().today().year - 1, 1, 1),
-            'end': date(now().today().year - 1, 12, 31),
+            'start': datetime.date(now().today().year - 1, 1, 1),
+            'end': datetime.date(now().today().year - 1, 12, 31),
         })
         return kwargs
 
     def form_valid(self, form):
+        txns = models.Transaction.objects.filter(
+            transaction_date__gte=form.cleaned_data['start'],
+            transaction_date__lte=form.cleaned_data['end'],
+        )
+        if self.branch:
+            txns = txns.filter(
+                Q(invoice__isnull=True) | Q(invoice__branch=self.branch))
         dataset = models.TransactionResource().export(
-            queryset=models.Transaction.objects.filter(
-                transaction_date__gte=form.cleaned_data['start'],
-                transaction_date__lte=form.cleaned_data['end'],
-            ).order_by('-transaction_date', '-pk')
+            queryset=txns.order_by('-transaction_date', '-pk')
         )
         response = HttpResponse(dataset.xls, content_type="application/csv")
         response['Content-Disposition'] = \
-            u'attachment; filename="{} {} - {}.xls"'.format(
-                form.cleaned_data['account'].name,
+            u'attachment; filename="{} - {}.xls"'.format(
                 form.cleaned_data['start'],
                 form.cleaned_data['end'])
         return response

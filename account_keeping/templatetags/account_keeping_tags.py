@@ -4,7 +4,15 @@ from django.conf import settings
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
 
+from ..models import Branch
+
+
 register = template.Library()
+
+
+@register.simple_tag()
+def get_branches():
+    return Branch.objects.all()
 
 
 @register.filter()

@@ -23,6 +23,17 @@ class InvoiceForm(forms.ModelForm):
                 'payment_date': forms.widgets.DateInput,
             }
 
+    def __init__(self, branch, *args, **kwargs):
+        self.branch = branch
+        super(InvoiceForm, self).__init__(*args, **kwargs)
+        if branch or self.instance.pk:
+            del self.fields['branch']
+
+    def save(self, *args, **kwargs):
+        if not self.instance.pk and self.branch:
+            self.instance.branch = self.branch
+        return super(InvoiceForm, self).save(*args, **kwargs)
+
 
 class TransactionForm(forms.ModelForm):
     mark_invoice = forms.BooleanField(
@@ -63,11 +74,6 @@ class TransactionForm(forms.ModelForm):
 
 
 class ExportForm(forms.Form):
-    account = forms.ModelChoiceField(
-        label=_('Account'),
-        queryset=models.Account.objects.all(),
-    )
-
     start = forms.DateField(
         label=_('Start'),
     )

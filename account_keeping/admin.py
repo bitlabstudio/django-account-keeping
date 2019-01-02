@@ -4,17 +4,23 @@ from django.contrib import admin
 from . import models
 
 
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+admin.site.register(models.Branch, BranchAdmin)
+
+
 class AccountAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'slug', 'currency', 'initial_amount', 'total_amount']
+        'name', 'slug', 'currency', 'initial_amount', 'total_amount', 'branch']
+    list_filter = ['branch']
 admin.site.register(models.Account, AccountAdmin)
 
 
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = [
         'invoice_type', 'invoice_date', 'currency', 'amount_net', 'vat',
-        'amount_gross', 'payment_date']
-    list_filter = ['invoice_type', 'currency', 'payment_date']
+        'amount_gross', 'payment_date', 'branch']
+    list_filter = ['invoice_type', 'currency', 'payment_date', 'branch']
     date_hierarchy = 'invoice_date'
     search_fields = ['invoice_number', 'description']
 admin.site.register(models.Invoice, InvoiceAdmin)

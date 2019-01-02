@@ -61,6 +61,10 @@ urlpatterns = [
         views.CurrentMonthRedirectView.as_view(),
         name='account_keeping_current_month'),
 
+    url(r'branch/(?P<slug>[\w-]+)/activate/$',
+        views.BranchSelectView.as_view(),
+        name='account_keeping_select_branch'),
+
     url(r'$',
         views.IndexView.as_view(),
         name='account_keeping_index'),

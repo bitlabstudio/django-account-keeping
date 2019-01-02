@@ -1,4 +1,4 @@
-{% load account_keeping_tags libs_tags %}
+{% load account_keeping_tags libs_tags i18n %}
 <div class="container">
   <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
@@ -33,6 +33,30 @@
               <li class="{% navactive request accounts_url %}">
                 <a href="{{ accounts_url }}">Accounts</a>
               </li>
+            </ul>
+          </li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            {% get_branches as branches %}
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+              {% if request.COOKIES.django_account_keeping_branch %}
+                {% for branch in branches %}
+                  {% if request.COOKIES.django_account_keeping_branch == branch.slug %}{{ branch.name }}{% endif %}
+                {% endfor %}
+              {% else %}
+                {% trans "All branches" %}
+              {% endif %} <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              {% if request.COOKIES.django_account_keeping_branch %}
+                <li><a href="{% url "account_keeping_select_branch" slug='all' %}">{% trans "All branches" %}</a></li>
+              {% endif %}
+              {% for branch in branches %}
+                {% if request.COOKIES.django_account_keeping_branch != branch.slug %}
+                  <li><a href="{% url "account_keeping_select_branch" slug=branch.slug %}">{{ branch.name }}</a></li>
+                {% endif %}
+              {% endfor %}
             </ul>
           </li>
         </ul>

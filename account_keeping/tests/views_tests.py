@@ -41,7 +41,11 @@ class AllTimeViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
-        self.is_callable(self.user)
+        req = self.get_get_request(user=self.user)
+        req.COOKIES['django_account_keeping_branch'] = 'main'
+        view = self.get_view()
+        resp = view(req)
+        self.assert200(resp, self.user)
 
 
 class CurrentMonthRedirectViewTestCase(ViewRequestFactoryTestMixin, TestCase):
@@ -113,7 +117,12 @@ class MonthViewTestCase(ViewRequestFactoryTestMixin, TestCase):
 
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
-        self.is_callable(self.user)
+        req = self.get_get_request(user=self.user,
+                                   view_kwargs=self.get_view_kwargs())
+        req.COOKIES['django_account_keeping_branch'] = 'foo'
+        view = self.get_view()
+        resp = view(req, **self.get_view_kwargs())
+        self.assert200(resp, self.user)
         self.is_callable(self.user, kwargs={
             'year': now().year, 'month': now().month})
 
@@ -190,6 +199,22 @@ class IndexViewTestCase(ViewRequestFactoryTestMixin, TestCase):
         self.is_callable(self.user)
 
 
+class BranchSelectViewTestCase(ViewRequestFactoryTestMixin, TestCase):
+    """Tests for the ``BranchSelectView`` view class."""
+    view_class = views.BranchSelectView
+
+    def setUp(self):
+        self.user = mixer.blend('auth.User')
+        self.branch = mixer.blend('account_keeping.Branch')
+
+    def get_view_kwargs(self):
+        return {'slug': self.branch.slug}
+
+    def test_view(self):
+        self.redirects(user=self.user, to='/')
+        self.is_not_callable(self.user, kwargs={'slug': 'foo'})
+
+
 class PayeeListViewTestCase(ViewRequestFactoryTestMixin, TestCase):
     """Tests for the ``PayeeListView`` view class."""
     view_class = views.PayeeListView
@@ -216,6 +241,7 @@ class InvoiceCreateViewTestCase(ViewRequestFactoryTestMixin, TestCase):
             'invoice_type': 'd',
             'invoice_date': now().strftime('%Y-%m-%d'),
             'currency': mixer.blend('currency_history.Currency').pk,
+            'branch': mixer.blend('account_keeping.Branch').pk,
             'amount_net': 0,
             'amount_gross': 0,
             'vat': 0,

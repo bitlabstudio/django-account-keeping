@@ -12,7 +12,7 @@ from requests.exceptions import ConnectionError, HTTPError
 from . import models
 
 
-def get_unpaid_invoices_with_transactions():
+def get_unpaid_invoices_with_transactions(branch=None):
     """
     Returns all invoices that are unpaid on freckle but have transactions.
 
@@ -35,6 +35,9 @@ def get_unpaid_invoices_with_transactions():
             invoice_with_transactions = models.Invoice.objects.filter(
                 invoice_number=invoice['reference'],
                 transactions__isnull=False)
+            if branch:
+                invoice_with_transactions = invoice_with_transactions.filter(
+                    branch=branch)
             if invoice_with_transactions:
                 invoices.append(invoice)
         result.update({'invoices': invoices})

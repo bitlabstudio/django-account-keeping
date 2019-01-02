@@ -86,6 +86,7 @@ class Command(BaseCommand):
                     amount_gross=amount,
                     vat=vat,
                     payment_date=transaction_date,
+                    branch=models.Branch.objects.first(),
                 )
 
                 models.Transaction.objects.create(

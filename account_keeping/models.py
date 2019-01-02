@@ -80,6 +80,12 @@ class Account(models.Model):
         verbose_name=_('Slug'),
     )
 
+    branch = models.ForeignKey(
+        'account_keeping.Branch',
+        related_name='accounts',
+        verbose_name=_('Branch'),
+    )
+
     currency = models.ForeignKey(
         'currency_history.Currency',
         related_name='accounts',
@@ -148,6 +154,12 @@ class Invoice(AmountMixin, models.Model):
         (INVOICE_TYPES['withdrawal'], 'withdrawal'),
         (INVOICE_TYPES['deposit'], 'deposit'),
     ]
+
+    branch = models.ForeignKey(
+        'account_keeping.Branch',
+        related_name='invoices',
+        verbose_name=_('Branch'),
+    )
 
     invoice_type = models.CharField(
         max_length=1,

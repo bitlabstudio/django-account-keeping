@@ -11,6 +11,15 @@ WITHDRAWAL = models.Transaction.TRANSACTION_TYPES['withdrawal']
 DEPOSIT = models.Transaction.TRANSACTION_TYPES['deposit']
 
 
+class BranchTestCase(TestCase):
+    """Tests for the ``Account`` model."""
+    def setUp(self):
+        self.branch = mixer.blend('account_keeping.Branch')
+
+    def test_model(self):
+        self.assertTrue(str(self.branch))
+
+
 class AccountTestCase(TestCase):
     """Tests for the ``Account`` model."""
     def setUp(self):

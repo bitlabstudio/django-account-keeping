@@ -12,10 +12,11 @@ class InvoiceFormTestCase(TestCase):
     longMessage = True
 
     def test_form(self):
-        form = forms.InvoiceForm(data={
+        form = forms.InvoiceForm(branch=None, data={
             'invoice_type': 'd',
             'invoice_date': now().strftime('%Y-%m-%d'),
             'currency': mixer.blend('currency_history.Currency').pk,
+            'branch': mixer.blend('account_keeping.Branch').pk,
             'vat': 0,
             'value_net': 0,
             'value_gross': 0,
