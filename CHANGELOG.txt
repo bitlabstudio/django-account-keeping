@@ -1,6 +1,6 @@
 === ongoing (0.4.X - to be released as 0.5) ===
 
-tbc
+- Assigned currencies to branches
 
 === 0.4 ===
 
