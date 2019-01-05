@@ -269,7 +269,7 @@ class IndexView(BranchMixin, generic.TemplateView):
             invoices_without_pdf = invoices_without_pdf.filter(
                 branch=self.branch)
             transactions_without_invoice = transactions_without_invoice.filter(
-                Q(invoice__isnull=True) | Q(invoice__branch=self.branch)
+                Q(account__branch=self.branch) | Q(invoice__branch=self.branch)
             )
         ctx.update({
             'invoices_without_pdf': invoices_without_pdf,
@@ -417,7 +417,8 @@ class YearOverviewView(BranchMixin, generic.TemplateView):
             parent__isnull=True, transaction_date__year=self.year)
         if self.branch:
             txns = txns.filter(
-                Q(invoice__branch=self.branch) | Q(invoice__isnull=True))
+                Q(invoice__branch=self.branch) |
+                Q(account__branch=self.branch))
         qs_year = txns.extra({'month': truncate_date})
 
         qs_income = qs_year.filter(
@@ -576,7 +577,8 @@ class YearOverviewView(BranchMixin, generic.TemplateView):
                 invoice__payment_date__isnull=True)
             if self.branch:
                 txns = txns.filter(
-                    Q(invoice__branch=self.branch) | Q(invoice__isnull=True))
+                    Q(invoice__branch=self.branch) |
+                    Q(account__branch=self.branch))
             txns = txns.extra({'month': truncate_transaction_date, })
             txns = txns.values('currency')
             qs = txns.annotate(value_sum=Sum('value_gross'))
@@ -782,6 +784,11 @@ class TransactionMixin(object):
     model = models.Transaction
     form_class = forms.TransactionForm
 
+    def get_form_kwargs(self):
+        kwargs = super(TransactionMixin, self).get_form_kwargs()
+        kwargs.update({'branch': self.branch})
+        return kwargs
+
     def get_success_url(self):
         return u'{}#{}'.format(reverse('account_keeping_month', kwargs={
             'year': self.object.transaction_date.year,
@@ -831,7 +838,8 @@ class TransactionExportView(BranchMixin, generic.FormView):
         )
         if self.branch:
             txns = txns.filter(
-                Q(invoice__isnull=True) | Q(invoice__branch=self.branch))
+                Q(account__branch=self.branch) |
+                Q(invoice__branch=self.branch))
         dataset = models.TransactionResource().export(
             queryset=txns.order_by('-transaction_date', '-pk')
         )

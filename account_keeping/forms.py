@@ -59,11 +59,14 @@ class TransactionForm(forms.ModelForm):
             'parent': forms.widgets.NumberInput(),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, branch, *args, **kwargs):
         super(TransactionForm, self).__init__(*args, **kwargs)
         self.fields['payee'].help_text = _(
             '<a href="{}">Add a payee</a>').format(
             reverse('account_keeping_payee_create'))
+        if branch:
+            self.fields['account'].queryset = self.fields[
+                'account'].queryset.filter(branch=branch)
 
     def save(self, *args, **kwargs):
         if self.instance.invoice and self.cleaned_data.get('mark_invoice'):

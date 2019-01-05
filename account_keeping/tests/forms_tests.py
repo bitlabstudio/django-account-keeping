@@ -29,10 +29,11 @@ class TransactionFormTestCase(TestCase):
     longMessage = True
 
     def test_form(self):
+        account = mixer.blend('account_keeping.Account')
         data = {
             'transaction_type': 'd',
             'transaction_date': now().strftime('%Y-%m-%d'),
-            'account': mixer.blend('account_keeping.Account').pk,
+            'account': account.pk,
             'payee': mixer.blend('account_keeping.Payee').pk,
             'category': mixer.blend('account_keeping.Category').pk,
             'currency': mixer.blend('currency_history.Currency').pk,
@@ -43,7 +44,7 @@ class TransactionFormTestCase(TestCase):
             'value_gross': 0,
             'mark_invoice': True,
         }
-        form = forms.TransactionForm(data=data)
+        form = forms.TransactionForm(data=data, branch=account.branch)
         self.assertFalse(form.errors)
         transaction = form.save()
         transaction.invoice = mixer.blend('account_keeping.Invoice',
@@ -51,7 +52,7 @@ class TransactionFormTestCase(TestCase):
         transaction.invoice.save()
         self.assertFalse(transaction.invoice.payment_date)
         data.update({'invoice': transaction.invoice.pk})
-        form = forms.TransactionForm(data=data)
+        form = forms.TransactionForm(data=data, branch=account.branch)
         self.assertFalse(form.errors)
         transaction = form.save()
         self.assertTrue(transaction.invoice.payment_date)
