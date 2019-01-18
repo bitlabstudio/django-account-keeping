@@ -801,6 +801,10 @@ class TransactionCreateView(BranchMixin, TransactionMixin, generic.CreateView):
     def dispatch(self, request, *args, **kwargs):
         if self.request.GET.get('invoice'):
             self.initial.update({'invoice': self.request.GET['invoice']})
+        else:
+            # Sometimes the invoice field is populated, even if there's no
+            # URL parameter set. Seems it's cached. Therefore we reset it
+            self.initial.update({'invoice': None})
         if self.request.GET.get('parent'):
             self.initial.update({'parent': self.request.GET['parent']})
         return super(TransactionCreateView, self).dispatch(

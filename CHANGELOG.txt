@@ -1,6 +1,8 @@
 === ongoing (0.4.X - to be released as 0.5) ===
 
 - Assigned currencies to branches
+- Fixed invoice number bug
+- Added more fields to admin lists
 
 === 0.4 ===
 
