@@ -3,6 +3,7 @@
 - Assigned currencies to branches
 - Fixed invoice number bug
 - Added more fields to admin lists
+- Add round for invoice and transaction amount calculation
 
 === 0.4 ===
 

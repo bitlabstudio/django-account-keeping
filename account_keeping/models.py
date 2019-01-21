@@ -25,16 +25,16 @@ class AmountMixin(object):
     def set_amount_fields(self):
         if self.amount_net and not self.amount_gross:
             if self.vat:
-                self.amount_gross = \
-                    self.amount_net * (self.vat / Decimal(100.0) + 1)
+                self.amount_gross = round(
+                    self.amount_net * (self.vat / Decimal(100.0) + 1), 2)
             else:
                 self.amount_gross = self.amount_net
 
         if self.amount_gross and not self.amount_net:
             if self.vat:
-                self.amount_net = \
-                    Decimal(1.0) / (self.vat / Decimal(100.0) + 1) \
-                    * self.amount_gross
+                self.amount_net = round(
+                    Decimal(1.0) / (
+                        self.vat / Decimal(100.0) + 1) * self.amount_gross, 2)
             else:
                 self.amount_net = self.amount_gross
 
@@ -101,14 +101,14 @@ class Account(models.Model):
 
     initial_amount = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Initial amount'),
     )
 
     total_amount = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Total amount'),
     )
@@ -197,7 +197,7 @@ class Invoice(AmountMixin, models.Model):
 
     amount_net = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         blank=True,
         verbose_name=_('Amount net'),
@@ -205,14 +205,14 @@ class Invoice(AmountMixin, models.Model):
 
     vat = models.DecimalField(
         max_digits=14,
-        decimal_places=10,
+        decimal_places=0,
         default=0,
-        verbose_name=_('VAT'),
+        verbose_name=_('VAT in %'),
     )
 
     amount_gross = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         blank=True,
         verbose_name=_('Amount gross'),
@@ -220,14 +220,14 @@ class Invoice(AmountMixin, models.Model):
 
     value_net = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Value net'),
     )
 
     value_gross = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Value gross'),
     )
@@ -422,7 +422,7 @@ class Transaction(AmountMixin, models.Model):
 
     amount_net = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         blank=True,
         verbose_name=_('Amount net'),
@@ -430,14 +430,14 @@ class Transaction(AmountMixin, models.Model):
 
     vat = models.DecimalField(
         max_digits=14,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('VAT'),
     )
 
     amount_gross = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         blank=True,
         verbose_name=_('Amount gross'),
@@ -445,14 +445,14 @@ class Transaction(AmountMixin, models.Model):
 
     value_net = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Value net'),
     )
 
     value_gross = models.DecimalField(
         max_digits=18,
-        decimal_places=10,
+        decimal_places=2,
         default=0,
         verbose_name=_('Value gross'),
     )
